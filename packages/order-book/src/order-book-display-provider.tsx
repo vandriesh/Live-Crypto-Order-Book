@@ -19,7 +19,7 @@ import {
 } from "react";
 
 const tickSizeOptions = ["0.01", "0.1", "1", "10", "50", "100", "1000"] as const;
-const visibleOrderBookLevels = 15;
+const visibleOrderBookLevels = 10;
 
 type TickSizeOption = (typeof tickSizeOptions)[number];
 type DepthMode = "amount" | "cumulative";
@@ -47,6 +47,7 @@ type OrderBookDisplayAction =
 type DisplayRow = {
   amount: string;
   depthRatio: number;
+  isPlaceholder?: boolean;
   operation: "ask" | "bid";
   price: string;
   total: string;
@@ -144,11 +145,19 @@ function createDisplayRows(args: {
   }[];
   operation: "ask" | "bid";
   roundingEnabled: boolean;
+  targetCount: number;
   tickSize: TickSizeOption;
 }) {
-  const { depthMode, levels, operation, roundingEnabled, tickSize } = args;
+  const {
+    depthMode,
+    levels,
+    operation,
+    roundingEnabled,
+    targetCount,
+    tickSize,
+  } = args;
 
-  return levels.map((level) => ({
+  const rows = levels.map((level) => ({
     amount: formatQuantity(level.quantity),
     depthRatio: level.depthRatio,
     operation,
@@ -158,6 +167,25 @@ function createDisplayRows(args: {
         ? formatQuantity(level.cumulative)
         : formatCompactNumber(level.notional),
   }));
+
+  const missingRowCount = Math.max(targetCount - rows.length, 0);
+
+  if (missingRowCount === 0) {
+    return rows;
+  }
+
+  const placeholderRows = Array.from({ length: missingRowCount }, () => ({
+    amount: "",
+    depthRatio: 0,
+    isPlaceholder: true,
+    operation,
+    price: "",
+    total: "",
+  }));
+
+  return operation === "ask"
+    ? [...placeholderRows, ...rows]
+    : [...rows, ...placeholderRows];
 }
 
 function bucketOrderBookLevels(args: {
@@ -222,7 +250,9 @@ export function OrderBookDisplayProvider({
 }) {
   const marketData = useMarketData();
   const { market, orderBookSnapshot: snapshot } = marketData;
-  const previousMidPriceByMarketRef = useRef(new Map<string, number>());
+  const previousMidPriceByMarketRef = useRef(
+    new Map<string, { direction: "down" | "up"; price: number }>(),
+  );
   const [state, dispatch] = useReducer(
     orderBookDisplayReducer,
     initialDisplayState,
@@ -232,11 +262,22 @@ export function OrderBookDisplayProvider({
     console.log("[OrderBookDisplayProvider] market data", marketData);
   }, [marketData]);
 
-  const previousMidPrice = previousMidPriceByMarketRef.current.get(market);
+  const previousMidPriceState = previousMidPriceByMarketRef.current.get(market);
+  const persistedMidPriceDirection =
+    previousMidPriceState == null
+      ? "up"
+      : snapshot.midPrice > previousMidPriceState.price
+        ? "up"
+        : snapshot.midPrice < previousMidPriceState.price
+          ? "down"
+          : previousMidPriceState.direction;
 
   useEffect(() => {
-    previousMidPriceByMarketRef.current.set(market, snapshot.midPrice);
-  }, [market, snapshot.midPrice]);
+    previousMidPriceByMarketRef.current.set(market, {
+      direction: persistedMidPriceDirection,
+      price: snapshot.midPrice,
+    });
+  }, [market, persistedMidPriceDirection, snapshot.midPrice]);
 
   const value = useMemo<OrderBookDisplayContextValue>(() => {
     const marketLabel = formatMarketLabel(market);
@@ -251,14 +292,6 @@ export function OrderBookDisplayProvider({
     const buyTotal = snapshot.bids.reduce((sum, level) => sum + level.quantity, 0);
     const sellTotal = snapshot.asks.reduce((sum, level) => sum + level.quantity, 0);
     const combinedTotal = buyTotal + sellTotal || 1;
-    const midPriceDirection =
-      previousMidPrice == null
-        ? "flat"
-        : snapshot.midPrice > previousMidPrice
-          ? "up"
-          : snapshot.midPrice < previousMidPrice
-            ? "down"
-            : "flat";
 
     return {
       actions: {
@@ -283,6 +316,7 @@ export function OrderBookDisplayProvider({
           }).reverse(),
           operation: "ask",
           roundingEnabled: state.roundingEnabled,
+          targetCount: visibleLevels,
           tickSize: state.tickSize,
         }),
         baseAsset,
@@ -295,12 +329,13 @@ export function OrderBookDisplayProvider({
           }),
           operation: "bid",
           roundingEnabled: state.roundingEnabled,
+          targetCount: visibleLevels,
           tickSize: state.tickSize,
         }),
         buyRatio: (buyTotal / combinedTotal) * 100,
         marketLabel,
         midPriceRow: {
-          direction: midPriceDirection,
+          direction: persistedMidPriceDirection,
           price: formatPriceForDisplay(
             snapshot.midPrice,
             state.roundingEnabled,
@@ -313,7 +348,7 @@ export function OrderBookDisplayProvider({
         showRatio: state.showRatio,
       },
     };
-  }, [market, previousMidPrice, snapshot, state]);
+  }, [market, persistedMidPriceDirection, snapshot, state]);
 
   return (
     <OrderBookDisplayContext.Provider value={value}>

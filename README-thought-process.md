@@ -538,3 +538,31 @@ This file records the user prompts from the beginning of this conversation in ch
 ## 83. Amend Commit With Remaining Changes
 
 > Please commit with amend everything. Next we'll upgrade quickly. To fix shadcn and Radix and Tailwind parity
+
+## 84. Check Latest Stable Tailwind Radix Shadcn Versions
+
+> Now please check there which version we should use so we jump to the latest versions for Radix, Tailwind and shadcn.
+
+## 85. Stabilize Mid Price Row Width And Order Book Slots
+
+> hold this thought; let's quick fix an issue:
+> - OrderBookMidPriceRow - is not full width
+> - sometimes it overides selss items (fix css the container should be stable since we "reserved" 15 position - but I have a feeling that Binance Open API is kind of a demo API and provides less data. In order to avoid shifting the UI up and down, we should use 10 positions.
+>
+> But do check with official resources. Maybe you can back these thoughts with some concrete information.
+
+## 86. Clarify Binance Depth Data Strategies
+
+> That, I'm a little confused. The idea is that there are two ways to get it:
+> 1. Get all data and keep it locally
+> 2. Just listen for differences
+>
+> Is this correct?
+
+## 87. Fix Empty Gap In Order Book
+
+> check this "empty" case
+
+## 88. Keep Mid Price Color Sticky
+
+> Usually the order book mid price row should not have a neutral status. It keeps green until it's red. It keeps red until it switches to green.
