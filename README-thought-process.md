@@ -353,3 +353,50 @@ This file records the user prompts from the beginning of this conversation in ch
 ## 47. Commit Binance Connection Manager Stage
 
 > It works. I think we can add and commit the current stage dedicated to Binance Connection Manager.
+
+## 48. Market Logo API Question
+
+> Do we have an API to fetch the logo for the symbol/market we are displaying?  ?
+
+## 49. Add Free Market Icons
+
+> Hey, could you please find free icons for the market we are currently demoing? add to the assets directory
+
+## 50. Create UI Domain Kit
+
+> Okay I think I am ready to add a new UI package called ui-domain-kit
+> The first component in this UI will be the symbol logo, a component that will display the respective icon for the received symbol market property.
+
+## 51. Make Order Book Display a Popup
+
+> next, Order Book Display area - it should be a popup - create a component inside order-book package
+
+## 52. Order Book Row Count Question
+
+> Remind me how many lines we need to show in the order book for bids and asks ?
+
+## 53. Set Order Book Rows To Fifteen
+
+> Okay, let's make 15 so it is a small amount to render.
+
+## 54. Use Shadcn Popup For Display Menu
+
+> Order book display pop-up should use shadcn pop-up.
+
+## 55. Extract Ask Bid Row To UI Domain Kit
+
+> Next candidate to add UI domain kit package is the order books ask row and bid row. They have the same format; the only difference is the color of the data. Please use variation for the component to determine the color. About variations please do use the short approach declaring variations, which is using Tailwind under the hood.
+>
+> Operation names are "ask" and "bid" obviously.
+
+## 56. Introduce Utils Package
+
+> I think we ought to introduce a new package called utils that will contain different formatting helpers.
+
+## 57. Commit Utils Package Only
+
+> Please commit this new package mods only.
+
+## 58. Amend Utils Commit With Thought Log
+
+> Please also include in this commit [README-thought-process.md](README-thought-process.md) (amend)
