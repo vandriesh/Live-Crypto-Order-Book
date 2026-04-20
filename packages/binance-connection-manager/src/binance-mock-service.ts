@@ -28,6 +28,8 @@ export type BinanceOrderBookMessage = {
   snapshot: OrderBookSnapshot;
 };
 
+const DEFAULT_VISIBLE_LEVELS = 15;
+
 type MockOrderBookOptions = {
   levels?: number;
   intervalMs?: number;
@@ -256,7 +258,7 @@ function createBinanceMockService() {
     options: MockOrderBookOptions = {},
   ): BinanceOrderBookMessage {
     const state = getState(market);
-    const levels = options.levels ?? 12;
+    const levels = options.levels ?? DEFAULT_VISIBLE_LEVELS;
     const partialDepthPayload = createPartialDepthPayload(state, levels);
     const diffDepthPayload = createDiffDepthPayload(state, levels);
     const snapshot = createOrderBookSnapshot(market, partialDepthPayload);

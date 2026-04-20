@@ -1,9 +1,9 @@
 import {
   BuySellRatioBar,
   OrderBookLevelRow,
+  OrderBookMidPriceRow,
   TickSizeSelect,
 } from "@neet/ui-domain-kit";
-import { Minus, Plus } from "lucide-react";
 
 import {
   cn,
@@ -66,8 +66,7 @@ function OrderBookContainerContent() {
     bids,
     buyRatio,
     marketLabel,
-    midPrice,
-    midPriceValue,
+    midPriceRow,
     quoteAsset,
     sellRatio,
     showRatio,
@@ -117,19 +116,11 @@ function OrderBookContainerContent() {
                 />
               ))}
 
-            <div
-              className="grid grid-cols-[1.2fr_1fr_auto] items-center border-y border-shell-border bg-shell-surface px-2 py-3"
-            >
-              <div className="flex items-center gap-2 font-mono text-[2rem] font-semibold leading-none text-book-bid">
-                <span className="text-[11px] leading-none text-book-bid">
-                  <Plus className="size-3.5" />
-                </span>
-                {midPrice}
-              </div>
-              <div className="font-mono text-sm text-shell-text-faint">
-                ${midPriceValue}
-              </div>
-            </div>
+            <OrderBookMidPriceRow
+              direction={midPriceRow.direction}
+              price={midPriceRow.price}
+              referencePrice={midPriceRow.referencePrice}
+            />
 
             {bids.map((row) => (
               <OrderBookLevelRow
@@ -149,13 +140,5 @@ function OrderBookContainerContent() {
         </section>
       </div>
     </div>
-  );
-}
-
-function ChevronRightGlyph() {
-  return (
-    <span className="flex items-center justify-end text-shell-text-faint">
-      <Minus className="size-3.5 -rotate-45" />
-    </span>
   );
 }

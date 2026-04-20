@@ -431,3 +431,28 @@ This file records the user prompts from the beginning of this conversation in ch
 ## 65. Commit Domain Kit Cleanup
 
 > Commit please
+
+## 66. Extract And Fix Mid Price Row
+
+> OrderBookMidPriceRow it is; second I see it's always green. Never read. Could you investigate?
+> also while extracting - make sure to make UI looks as close as possible to Binance original look (attached image)
+
+## 66. Name Mid Price Element
+
+> This element also should be extracted in the domain UI kit. I'm not sure of a proper name; could you suggest one?
+
+## 67. Provider Owns Mid Price Row View
+
+> I prefer not to do anything inline but relay this for the provider that is responsible for preparing data for visualization.
+
+## 68. Commit Related Display Changes
+
+> Please commit all related changes.
+
+## 69. Reserve Mid Price Icon Slot
+
+> Fix mid price component for the flat situations. The content shifts; we need to reserve the place for the icon so I won't see any UI shifts. [123 arrow $123] vs [123  $123]
+
+## 70. Amend Display Commit With Thought Log
+
+> awesome, commit with amend with [README-thought-process.md](README-thought-process.md)

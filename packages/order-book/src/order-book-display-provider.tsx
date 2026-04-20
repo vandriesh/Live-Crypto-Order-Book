@@ -12,6 +12,7 @@ import {
   useEffect,
   useMemo,
   useReducer,
+  useRef,
 } from "react";
 
 const tickSizeOptions = ["0.01", "0.1", "1", "10", "50", "100", "1000"] as const;
@@ -50,8 +51,11 @@ type OrderBookDisplayView = {
   baseAsset: string;
   buyRatio: number;
   marketLabel: string;
-  midPrice: string;
-  midPriceValue: string;
+  midPriceRow: {
+    direction: "down" | "flat" | "up";
+    price: string;
+    referencePrice: string;
+  };
   quoteAsset: string;
   sellRatio: number;
   showRatio: boolean;
@@ -244,6 +248,7 @@ export function OrderBookDisplayProvider({
 }) {
   const marketData = useMarketData();
   const { market, orderBookSnapshot: snapshot } = marketData;
+  const previousMidPriceByMarketRef = useRef(new Map<string, number>());
   const [state, dispatch] = useReducer(
     orderBookDisplayReducer,
     initialDisplayState,
@@ -253,12 +258,26 @@ export function OrderBookDisplayProvider({
     console.log("[OrderBookDisplayProvider] market data", marketData);
   }, [marketData]);
 
+  const previousMidPrice = previousMidPriceByMarketRef.current.get(market);
+
+  useEffect(() => {
+    previousMidPriceByMarketRef.current.set(market, snapshot.midPrice);
+  }, [market, snapshot.midPrice]);
+
   const value = useMemo<OrderBookDisplayContextValue>(() => {
     const marketLabel = formatMarketLabel(market);
     const [baseAsset, quoteAsset] = marketLabel.split("/");
     const buyTotal = snapshot.bids.reduce((sum, level) => sum + level.quantity, 0);
     const sellTotal = snapshot.asks.reduce((sum, level) => sum + level.quantity, 0);
     const combinedTotal = buyTotal + sellTotal || 1;
+    const midPriceDirection =
+      previousMidPrice == null
+        ? "flat"
+        : snapshot.midPrice > previousMidPrice
+          ? "up"
+          : snapshot.midPrice < previousMidPrice
+            ? "down"
+            : "flat";
 
     return {
       actions: {
@@ -300,18 +319,21 @@ export function OrderBookDisplayProvider({
         }),
         buyRatio: (buyTotal / combinedTotal) * 100,
         marketLabel,
-        midPrice: formatPriceForDisplay(
-          snapshot.midPrice,
-          state.roundingEnabled,
-          state.tickSize,
-        ),
-        midPriceValue: formatPrice(snapshot.midPrice),
+        midPriceRow: {
+          direction: midPriceDirection,
+          price: formatPriceForDisplay(
+            snapshot.midPrice,
+            state.roundingEnabled,
+            state.tickSize,
+          ),
+          referencePrice: formatPrice(snapshot.midPrice),
+        },
         quoteAsset,
         sellRatio: 100 - (buyTotal / combinedTotal) * 100,
         showRatio: state.showRatio,
       },
     };
-  }, [market, marketData, snapshot, state]);
+  }, [market, previousMidPrice, snapshot, state]);
 
   return (
     <OrderBookDisplayContext.Provider value={value}>
