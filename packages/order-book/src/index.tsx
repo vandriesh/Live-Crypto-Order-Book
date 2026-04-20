@@ -1,5 +1,9 @@
+import {
+  formatMarketLabel,
+} from "@neet/data";
+import { useMarketData } from "@neet/binance-connection-manager";
 import { Ellipsis, Minus, Plus } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 import {
   Checkbox,
@@ -13,20 +17,6 @@ import {
   Switch,
   cn,
 } from "@neet/ui-kit";
-
-const orderRows = [
-  { price: "75,181.25", amount: "0.00019", total: "14.28399", side: "ask" },
-  { price: "75,180.69", amount: "1.05088", total: "79.00K", side: "ask", depth: "w-24" },
-  { price: "75,180.20", amount: "0.12660", total: "9.51K", side: "ask", depth: "w-12" },
-  { price: "75,179.91", amount: "0.00014", total: "10.52K", side: "ask", depth: "w-20" },
-  { price: "75,178.43", amount: "4.56425", total: "343.13K", side: "ask", depth: "w-28" },
-  { price: "75,178.00", amount: "$ 75,178.00", total: "", side: "spread" },
-  { price: "75,177.99", amount: "0.42043", total: "31.60K", side: "bid", depth: "w-20" },
-  { price: "75,177.95", amount: "0.00028", total: "21.04", side: "bid", depth: "w-10" },
-  { price: "75,176.64", amount: "0.00008", total: "6.014131", side: "bid", depth: "w-8" },
-  { price: "75,175.99", amount: "0.00007", total: "5.262319", side: "bid", depth: "w-12" },
-  { price: "75,175.41", amount: "0.00227", total: "170.64818", side: "bid", depth: "w-24" },
-];
 
 const tickSizes = ["0.01", "0.1", "1", "10", "50", "100", "1000"];
 
@@ -86,7 +76,39 @@ function LabeledCheckbox({
   );
 }
 
+function formatCompactNumber(value: number) {
+  return new Intl.NumberFormat("en-US", {
+    notation: "compact",
+    maximumFractionDigits: 2,
+  }).format(value);
+}
+
+function formatPrice(value: number) {
+  return new Intl.NumberFormat("en-US", {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 3,
+  }).format(value);
+}
+
+function formatQuantity(value: number) {
+  return new Intl.NumberFormat("en-US", {
+    minimumFractionDigits: 5,
+    maximumFractionDigits: 5,
+  }).format(value);
+}
+
+function getDepthClass(depthRatio: number) {
+  if (depthRatio >= 0.85) return "w-28";
+  if (depthRatio >= 0.65) return "w-24";
+  if (depthRatio >= 0.45) return "w-20";
+  if (depthRatio >= 0.3) return "w-16";
+  if (depthRatio >= 0.18) return "w-12";
+  return "w-8";
+}
+
 export function OrderBookContainer() {
+  const marketData = useMarketData();
+  const { market, orderBookSnapshot: snapshot } = marketData;
   const [displayAverage, setDisplayAverage] = useState(true);
   const [showRatio, setShowRatio] = useState(true);
   const [roundingEnabled, setRoundingEnabled] = useState(true);
@@ -94,11 +116,26 @@ export function OrderBookContainer() {
   const [depthMode, setDepthMode] = useState("amount");
   const [tickSize, setTickSize] = useState("0.01");
 
+  useEffect(() => {
+    console.log("[OrderBookContainer] market data", marketData);
+  }, [marketData]);
+
+  const [baseAsset, quoteAsset] = useMemo(
+    () => formatMarketLabel(market).split("/"),
+    [market],
+  );
+  const buyTotal = snapshot.bids.reduce((sum, level) => sum + level.quantity, 0);
+  const sellTotal = snapshot.asks.reduce((sum, level) => sum + level.quantity, 0);
+  const combinedTotal = buyTotal + sellTotal || 1;
+  const buyRatio = (buyTotal / combinedTotal) * 100;
+  const sellRatio = 100 - buyRatio;
+
   return (
     <div className="flex h-full flex-col bg-shell-surface">
       <div className="flex items-center justify-between border-b border-shell-border px-4 py-3">
         <div>
           <h2 className="text-sm font-semibold text-white">Order Book</h2>
+          <p className="mt-1 text-xs text-shell-text-faint">{formatMarketLabel(market)}</p>
         </div>
         <button type="button" className="text-shell-text-faint transition hover:text-white">
           <Ellipsis className="size-4" />
@@ -191,73 +228,90 @@ export function OrderBookContainer() {
 
         <section className="overflow-hidden rounded-[20px] border border-shell-border bg-shell-surface-alt">
           <div className="grid grid-cols-[1fr_1fr_1fr] px-4 py-3 text-xs text-shell-text-faint">
-            <span>Price (USDT)</span>
-            <span className="text-right">Amount (BTC)</span>
+            <span>Price ({quoteAsset})</span>
+            <span className="text-right">Amount ({baseAsset})</span>
             <span className="text-right">Total</span>
           </div>
 
           <div className="px-2 pb-3">
-            {orderRows.map((row) => {
-              if (row.side === "spread") {
-                return (
-                  <div
-                    key={row.price}
-                    className="grid grid-cols-[1.2fr_1fr_auto] items-center border-y border-shell-border bg-shell-surface px-2 py-3"
-                  >
-                    <div className="flex items-center gap-2 font-mono text-[2rem] font-semibold leading-none text-book-bid">
-                      <span className="text-[11px] leading-none text-book-bid">
-                        <Plus className="size-3.5" />
-                      </span>
-                      {row.price}
-                    </div>
-                    <div className="font-mono text-sm text-shell-text-faint">
-                      {row.amount}
-                    </div>
-                    <ChevronRightGlyph />
-                  </div>
-                );
-              }
-
-              return (
+            {snapshot.asks
+              .slice()
+              .reverse()
+              .map((row) => (
                 <div
-                  key={`${row.side}-${row.price}`}
+                  key={`ask-${row.price}`}
                   className="relative grid grid-cols-[1fr_1fr_1fr] items-center px-2 py-1.5 font-mono text-sm"
                 >
                   <div
                     className={cn(
-                      "absolute top-1/2 right-2 h-6 -translate-y-1/2 rounded-sm",
-                      row.side === "ask" ? "bg-book-ask-soft" : "bg-book-bid-soft",
-                      row.depth ?? "w-16",
+                      "absolute top-1/2 right-2 h-6 -translate-y-1/2 rounded-sm bg-book-ask-soft",
+                      getDepthClass(row.depthRatio),
                     )}
                   />
-                  <span
-                    className={cn(
-                      "relative z-10",
-                      row.side === "ask" ? "text-book-ask" : "text-book-bid",
-                    )}
-                  >
-                    {row.price}
+                  <span className="relative z-10 text-book-ask">
+                    {formatPrice(row.price)}
                   </span>
                   <span className="relative z-10 text-right text-shell-text-muted">
-                    {row.amount}
+                    {formatQuantity(row.quantity)}
                   </span>
                   <span className="relative z-10 text-right text-shell-text-muted">
-                    {row.total}
+                    {depthMode === "cumulative"
+                      ? formatQuantity(row.cumulative)
+                      : formatCompactNumber(row.notional)}
                   </span>
                 </div>
-              );
-            })}
+              ))}
+
+            <div
+              className="grid grid-cols-[1.2fr_1fr_auto] items-center border-y border-shell-border bg-shell-surface px-2 py-3"
+            >
+              <div className="flex items-center gap-2 font-mono text-[2rem] font-semibold leading-none text-book-bid">
+                <span className="text-[11px] leading-none text-book-bid">
+                  <Plus className="size-3.5" />
+                </span>
+                {formatPrice(snapshot.midPrice)}
+              </div>
+              <div className="font-mono text-sm text-shell-text-faint">
+                ${formatPrice(snapshot.midPrice)}
+              </div>
+              <ChevronRightGlyph />
+            </div>
+
+            {snapshot.bids.map((row) => (
+              <div
+                key={`bid-${row.price}`}
+                className="relative grid grid-cols-[1fr_1fr_1fr] items-center px-2 py-1.5 font-mono text-sm"
+              >
+                <div
+                  className={cn(
+                    "absolute top-1/2 right-2 h-6 -translate-y-1/2 rounded-sm bg-book-bid-soft",
+                    getDepthClass(row.depthRatio),
+                  )}
+                />
+                <span className="relative z-10 text-book-bid">
+                  {formatPrice(row.price)}
+                </span>
+                <span className="relative z-10 text-right text-shell-text-muted">
+                  {formatQuantity(row.quantity)}
+                </span>
+                <span className="relative z-10 text-right text-shell-text-muted">
+                  {depthMode === "cumulative"
+                    ? formatQuantity(row.cumulative)
+                    : formatCompactNumber(row.notional)}
+                </span>
+              </div>
+            ))}
           </div>
 
           {showRatio ? (
             <div className="border-t border-shell-border px-4 py-3">
               <div className="flex items-center justify-between text-xs font-medium">
-                <span className="text-book-bid">B 3.33%</span>
-                <span className="text-book-ask">96.66% S</span>
+                <span className="text-book-bid">B {buyRatio.toFixed(2)}%</span>
+                <span className="text-book-ask">{sellRatio.toFixed(2)}% S</span>
               </div>
               <div className="mt-2 flex h-1.5 overflow-hidden rounded-full bg-shell-surface-elevated">
-                <div className="w-[3.33%] bg-book-bid" />
-                <div className="w-[96.66%] bg-book-ask" />
+                <div className="bg-book-bid" style={{ width: `${buyRatio}%` }} />
+                <div className="bg-book-ask" style={{ width: `${sellRatio}%` }} />
               </div>
             </div>
           ) : null}

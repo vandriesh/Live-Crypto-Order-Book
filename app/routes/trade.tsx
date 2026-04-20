@@ -1,6 +1,7 @@
 import { redirect } from "react-router";
 import { netlifyRouterContext } from "@netlify/vite-plugin-react-router/edge";
 import { AppShell } from "@neet/app-shell";
+import { DataProvider } from "@neet/binance-connection-manager";
 import {
   defaultMarket,
   isSupportedMarket,
@@ -65,13 +66,18 @@ export async function loader({ request, params, context }: Route.LoaderArgs) {
 
 export default function TradeRoute({ loaderData }: Route.ComponentProps) {
   return (
-    <AppShell
-      country={loaderData.country}
-      markets={supportedMarkets}
-      currentMarket={loaderData.market}
+    <DataProvider
+      market={loaderData.market}
       marketType={loaderData.type}
     >
-      <OrderBookContainer />
-    </AppShell>
+      <AppShell
+        country={loaderData.country}
+        markets={supportedMarkets}
+        currentMarket={loaderData.market}
+        marketType={loaderData.type}
+      >
+        <OrderBookContainer />
+      </AppShell>
+    </DataProvider>
   );
 }

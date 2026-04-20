@@ -1,13 +1,12 @@
 # @neet/data
 
-Purpose: own market data concerns for the order book challenge.
+Purpose: own provider-agnostic market-data contracts and user-facing shapes.
 
-Initial scope:
-- websocket connection lifecycle
-- Binance depth stream subscription management
-- stream message normalization
-- market switching support
+Scope:
+- normalized order book output types
+- provider contract interfaces
+- supported market helpers used by the app layer
 
 Current status:
-- placeholder package only
-- no live websocket code yet
+- defines the output contract every market data provider should produce
+- does not own Binance-specific payloads or transport implementation

@@ -252,3 +252,104 @@ This file records the user prompts from the beginning of this conversation in ch
 ## 30. Amend Previous Commit
 
 > please commit as part of previous commit (amend)
+
+## 31. Mock Order Book Service Request
+
+> Now let's put in place a mock service that will return data needed for order book.
+> Analyze by a payload format type and create a simple API to return mock data for now. I need to familiarize myself with the Formadata tool, with better pictures of what WebSocket Binance Service provides.
+
+## 32. Provider Architecture Correction
+
+> Not quite what I had in mind.
+> 1. Let's add BinanceProvider which should be a singleton that takes care of handling web sockets, stuff like:
+> - connect
+> - disconnect
+> - subscribe
+> - unsubscribe
+> - open socket
+> - emit - to notify all listeners.
+>
+> 2. Data Provider - react Context Provider that gets us the parameter market and wraps all the consumers in this case, all the app, it stays above the app-shell.
+>
+> 3. The hook useMarketData - it's a hook to access the context. This is what the consumers like or their books use to get the data.
+>
+> The market switchers we already have in our sidebar will redirect to a new route, for which the finance provider will be given market as a parameter.
+>
+> WDYT?
+
+## 33. Binance Terminology Alignment
+
+> this is the link to open api:
+> https://developers.binance.com/docs/binance-spot-api-docs/web-socket-streams
+> 2) I'd like to be as close as possible to their API, their terminology. Yes I am okay with renaming to use simple over market.
+> Although I think mark it is something users can see, the symbol is actually something that the backend is using.
+>
+> What do you think?
+
+## 34. Apply Terminology Split
+
+> Does the Binance API have to use the Binance Symbol API but probably we don't need to because we can hard code those, right?
+
+## 35. Apply Suggested Naming Changes
+
+> Okay please add your suggested changes.
+
+## 36. Backend Package Reframing
+
+> By the way what previously was thought to be a name for our so-called backend, the data package, it looks like connection manager is the actual backend package we are using.
+
+## 37. Contract Question
+
+> Do you mean that the data package could be used as a contract that the connection manager is implementing?
+
+## 38. Provider Abstraction Direction
+
+> What I mean is that our crypto demo could use different providers. One can be Binance and the other can be, I don't know. In order to make our application work better we add a kind of interface that each provider should implement. Each provider's package is responsible for transforming the provider's data into our user-facing format.
+>
+> So user-facing format is an interface each provider should be outputting. This interface I think should be part of the data package and the connection manager actually is the implementation of that provider, specifically Binance Connection Manager. Because it contains the details, the implementations, how to talk to data provider using Binance API
+
+## 39. Simplified UI Contract Request
+
+> Now let's think of a simplified UI contract that is simple and clean and mentions only the data orderBook needs.
+
+## 40. UI Contract Must Match Screens
+
+> Please make sure this simplified contract follows the pictures we should be implementing for the book order container.
+
+## 41. Generic Contract Naming
+
+> Also I don't think this should be a prefix like `order-book` because it's for the consumer component called `order-book`. It should be generic, describing the data it represents.
+
+## 42. Simplify Emit Payload
+
+> one moment:
+> ```jsx
+> this.emit(channel, symbol, {
+>           channel,
+>           snapshot: message.snapshot,
+>           receivedAt: message.snapshot.eventTime,
+>         });
+> ```
+>
+> Could you tell me the necessity to use the symbol and the payload has channel snapshot and receive that?
+
+## 43. Apply Emit Simplification
+
+> Yes please.
+
+## 44. Audit Uncommitted Files
+
+> Also please do an audit of all added files that are not committed yet for the declarations that are not used anywhere.
+
+## 45. Add Order Book Logging
+
+> Now please add logging in the order book. Use the hook and log it to the console so I can check if the data are coming.
+
+## 46. Rename Binance Implementation Package
+
+> Also I think it's time we rename the connection manager into Binance connection manager.
+> Emphasize that this is an implementation for the Binance service.
+
+## 47. Commit Binance Connection Manager Stage
+
+> It works. I think we can add and commit the current stage dedicated to Binance Connection Manager.

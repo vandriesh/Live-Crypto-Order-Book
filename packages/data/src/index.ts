@@ -17,14 +17,24 @@ export function formatMarketLabel(market: string) {
   return `${base}/${quote}`;
 }
 
+export type {
+  MarketConnectionStatus,
+  MarketDataChannel,
+  MarketDataListener,
+  MarketDataProvider,
+  MarketDataSnapshot,
+  OrderBookLevel,
+  OrderBookSnapshot,
+} from "./market-data-contract";
+
 export const dataFeatureSummary = {
   packageName: "@neet/data",
   status: "placeholder",
   responsibility:
-    "Own websocket subscriptions, cleanup, and depth stream normalization.",
+    "Own provider-agnostic market-data contracts and normalized output shapes.",
   nextMilestones: [
-    "Create a Binance depth stream client.",
-    "Handle subscribe and teardown on market changes.",
-    "Normalize bids and asks for the order book feature.",
+    "Stabilize the app-facing market data contract.",
+    "Keep consumers independent from provider-specific payloads.",
+    "Support multiple provider implementations behind one output format.",
   ],
 } as const;
