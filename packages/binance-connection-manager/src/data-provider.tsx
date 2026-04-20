@@ -15,7 +15,7 @@ import {
   binanceProvider,
   type BinanceProvider,
 } from "./binance-provider";
-import { binanceMockService } from "./binance-mock-service";
+import { createEmptyOrderBookSnapshot } from "./binance-order-book-stream";
 
 type DataProviderProps = {
   children: ReactNode;
@@ -34,7 +34,7 @@ function createInitialValue(
   marketType: string,
   requestedChannels: MarketDataSnapshot["requestedChannels"],
 ): MarketDataSnapshot {
-  const orderBookSnapshot = binanceMockService.getOrderBookSnapshot(market);
+  const orderBookSnapshot = createEmptyOrderBookSnapshot(market);
 
   return {
     market,

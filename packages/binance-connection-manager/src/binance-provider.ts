@@ -5,13 +5,20 @@ import {
   type SupportedMarket,
 } from "@neet/data";
 
-import { binanceMockService, toBinanceSymbol } from "./binance-mock-service";
+import {
+  BinanceOrderBookStream,
+  toBinanceSymbol,
+} from "./binance-order-book-stream";
 
 type OrderBookSubscription = {
   symbol: string;
   channel: "order-book";
   listener: MarketDataListener;
-  unsubscribeTransport: () => void;
+};
+
+type ActiveOrderBookStream = {
+  stream: BinanceOrderBookStream;
+  subscriptionCount: number;
 };
 
 type SubscribeToOrderBookArgs = {
@@ -26,6 +33,7 @@ export class BinanceProvider implements MarketDataProvider {
   private socketIsOpen = false;
   private connectionStatus: MarketConnectionStatus = "idle";
   private orderBookSubscriptions = new Map<string, OrderBookSubscription>();
+  private activeOrderBookStreams = new Map<string, ActiveOrderBookStream>();
 
   static getInstance() {
     if (!BinanceProvider.instance) {
@@ -36,6 +44,10 @@ export class BinanceProvider implements MarketDataProvider {
   }
 
   openSocket() {
+    if (this.socketIsOpen) {
+      return;
+    }
+
     this.socketIsOpen = true;
   }
 
@@ -45,9 +57,10 @@ export class BinanceProvider implements MarketDataProvider {
   }
 
   disconnect() {
-    this.orderBookSubscriptions.forEach((subscription) => {
-      subscription.unsubscribeTransport();
+    this.activeOrderBookStreams.forEach(({ stream }) => {
+      stream.stop();
     });
+    this.activeOrderBookStreams.clear();
     this.orderBookSubscriptions.clear();
     this.socketIsOpen = false;
     this.connectionStatus = "idle";
@@ -65,19 +78,33 @@ export class BinanceProvider implements MarketDataProvider {
       : "switching";
 
     const subscriptionKey = `${channel}:${symbol}:${crypto.randomUUID()}`;
-    const unsubscribeTransport = binanceMockService.subscribe(
-      market,
-      (message) => {
-        this.connectionStatus = "connected";
-        this.emit(channel, symbol, message.snapshot);
-      },
-    );
+    const existingStream = this.activeOrderBookStreams.get(symbol);
+
+    if (existingStream) {
+      existingStream.subscriptionCount += 1;
+    } else {
+      const stream = new BinanceOrderBookStream(
+        market,
+        (snapshot) => {
+          this.connectionStatus = "connected";
+          this.emit(channel, symbol, snapshot);
+        },
+        () => {
+          this.connectionStatus = "connecting";
+        },
+      );
+
+      this.activeOrderBookStreams.set(symbol, {
+        stream,
+        subscriptionCount: 1,
+      });
+      stream.start();
+    }
 
     this.orderBookSubscriptions.set(subscriptionKey, {
       symbol,
       channel,
       listener,
-      unsubscribeTransport,
     });
 
     return subscriptionKey;
@@ -90,8 +117,18 @@ export class BinanceProvider implements MarketDataProvider {
       return;
     }
 
-    subscription.unsubscribeTransport();
     this.orderBookSubscriptions.delete(subscriptionKey);
+
+    const activeStream = this.activeOrderBookStreams.get(subscription.symbol);
+
+    if (activeStream) {
+      activeStream.subscriptionCount -= 1;
+
+      if (activeStream.subscriptionCount <= 0) {
+        activeStream.stream.stop();
+        this.activeOrderBookStreams.delete(subscription.symbol);
+      }
+    }
 
     if (this.orderBookSubscriptions.size === 0) {
       this.disconnect();

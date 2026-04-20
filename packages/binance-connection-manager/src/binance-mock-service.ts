@@ -28,7 +28,7 @@ export type BinanceOrderBookMessage = {
   snapshot: OrderBookSnapshot;
 };
 
-const DEFAULT_VISIBLE_LEVELS = 15;
+const DEFAULT_VISIBLE_LEVELS = 10;
 
 type MockOrderBookOptions = {
   levels?: number;

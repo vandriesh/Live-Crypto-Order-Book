@@ -566,3 +566,11 @@ This file records the user prompts from the beginning of this conversation in ch
 ## 88. Keep Mid Price Color Sticky
 
 > Usually the order book mid price row should not have a neutral status. It keeps green until it's red. It keeps red until it switches to green.
+
+## 89. Ask Why Binance Order Book Stream File Is New
+
+> [binance-order-book-stream.ts](packages/binance-connection-manager/src/binance-order-book-stream.ts) - why this files looks like newly added ?
+
+## 90. Clarify Previous Data Source Was Mock
+
+> Till now it was not real data but mock generated data through web sockets. ?

@@ -258,10 +258,6 @@ export function OrderBookDisplayProvider({
     initialDisplayState,
   );
 
-  useEffect(() => {
-    console.log("[OrderBookDisplayProvider] market data", marketData);
-  }, [marketData]);
-
   const previousMidPriceState = previousMidPriceByMarketRef.current.get(market);
   const persistedMidPriceDirection =
     previousMidPriceState == null

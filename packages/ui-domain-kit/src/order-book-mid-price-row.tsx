@@ -27,7 +27,7 @@ function DirectionGlyph({
 }: {
   direction: OrderBookMidPriceRowProps["direction"];
 }) {
-  const iconClassName = "size-4 stroke-[2.2]";
+  const iconClassName = "size-[0.9em] stroke-[2.2]";
 
   if (direction === "up") {
     return <ArrowUp className={iconClassName} />;
@@ -46,7 +46,7 @@ export function OrderBookMidPriceRow({
   referencePrice,
 }: OrderBookMidPriceRowProps) {
   return (
-    <div className="border-y border-shell-border bg-[#181d26] px-4 py-4">
+    <div className="-mx-2 w-auto  px-4 py-4">
       <div className="flex items-center gap-3">
         <div className={cn(midPriceValueVariants({ direction }))}>
           <span>{price}</span>

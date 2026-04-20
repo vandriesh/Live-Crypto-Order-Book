@@ -78,7 +78,10 @@ function OrderBookContainerContent() {
                 )}
               >
                 <div className="flex min-h-full flex-col justify-end">
-                  {asks.map((row) => (
+                  {asks.map((row, index) => (
+                    row.isPlaceholder ? (
+                      <div key={`ask-placeholder-${index}`} className="h-8" />
+                    ) : (
                     <OrderBookLevelRow
                       key={`ask-${row.price}-${row.total}`}
                       amount={row.amount}
@@ -87,6 +90,7 @@ function OrderBookContainerContent() {
                       price={row.price}
                       total={row.total}
                     />
+                    )
                   ))}
                 </div>
               </div>
@@ -106,15 +110,19 @@ function OrderBookContainerContent() {
                 )}
               >
                 <div className="flex flex-col">
-                  {bids.map((row) => (
-                    <OrderBookLevelRow
-                      key={`bid-${row.price}-${row.total}`}
-                      amount={row.amount}
-                      depthRatio={row.depthRatio}
-                      variant="bid"
-                      price={row.price}
-                      total={row.total}
-                    />
+                  {bids.map((row, index) => (
+                    row.isPlaceholder ? (
+                      <div key={`bid-placeholder-${index}`} className="h-8" />
+                    ) : (
+                      <OrderBookLevelRow
+                        key={`bid-${row.price}-${row.total}`}
+                        amount={row.amount}
+                        depthRatio={row.depthRatio}
+                        variant="bid"
+                        price={row.price}
+                        total={row.total}
+                      />
+                    )
                   ))}
                 </div>
               </div>

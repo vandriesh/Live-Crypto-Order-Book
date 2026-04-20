@@ -6,7 +6,9 @@ export { DataProvider, useMarketData } from "./data-provider";
 export type {
   BinanceDepthLevelTuple,
   BinanceDiffDepthPayload,
-  BinanceOrderBookMessage,
-  BinancePartialDepthPayload,
-} from "./binance-mock-service";
-export { binanceMockService, toBinanceSymbol } from "./binance-mock-service";
+  BinanceDepthSnapshotPayload,
+} from "./binance-order-book-stream";
+export {
+  createEmptyOrderBookSnapshot,
+  toBinanceSymbol,
+} from "./binance-order-book-stream";
