@@ -1,0 +1,5 @@
+{
+  "name": "@neet/order-book",
+  "private": true,
+  "type": "module"
+}
