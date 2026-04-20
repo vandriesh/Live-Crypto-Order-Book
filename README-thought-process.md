@@ -143,3 +143,18 @@ This file records the user prompts from the beginning of this conversation in ch
 ## 18. Shadcn Commit Request
 
 > I just added shadcn, with Radix based components, please commit;
+
+## 19. UI Kit Package Request
+
+> I prefer to introduce a UI kit package where we will keep all shadcn original components. By original components I mean dumb components that have no knowledge about the domain.
+> Also I need you to update shadcn config files so when we add next package, it will know about our future-based structures and all the changes will consider that UI kit is under package UI kit and to use appropriate aliases.
+
+## 20. UI Kit Public API Rule
+
+> don't use aliases like "@neet/ui-kit/*": ["./packages/ui-kit/src/*"]
+> we expose API only via feature's index.ts file
+
+## 21. Relative Internal Imports Rule
+
+> next don't use abs (aliases to include files form same package
+> make sure next components additions won't use abs path as well

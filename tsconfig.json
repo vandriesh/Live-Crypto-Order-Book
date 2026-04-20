@@ -17,7 +17,8 @@
     "paths": {
       "~/*": ["./app/*"],
       "@neet/data": ["./packages/data/src/index.ts"],
-      "@neet/order-book": ["./packages/order-book/src/index.tsx"]
+      "@neet/order-book": ["./packages/order-book/src/index.tsx"],
+      "@neet/ui-kit": ["./packages/ui-kit/src/index.ts"]
     },
     "esModuleInterop": true,
     "verbatimModuleSyntax": true,

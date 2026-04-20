@@ -5,6 +5,7 @@
   "scripts": {
     "build": "react-router build",
     "dev": "react-router dev",
+    "shadcn:add": "node ./scripts/shadcn-add.mjs add",
     "start": "npm run dev",
     "typecheck": "react-router typegen && tsc"
   },
