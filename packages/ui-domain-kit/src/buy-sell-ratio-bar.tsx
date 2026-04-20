@@ -1,4 +1,4 @@
-export type BuySellRatioBarProps = {
+type BuySellRatioBarProps = {
   buyPercent: number;
   sellPercent: number;
 };

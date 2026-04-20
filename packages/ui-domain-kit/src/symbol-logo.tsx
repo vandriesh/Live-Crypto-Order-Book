@@ -12,7 +12,7 @@ const marketLogoByAsset = {
 
 type SupportedAsset = keyof typeof marketLogoByAsset;
 
-export type SymbolLogoProps = Omit<
+type SymbolLogoProps = Omit<
   React.ComponentPropsWithoutRef<"img">,
   "alt" | "src"
 > & {

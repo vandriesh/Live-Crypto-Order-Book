@@ -6,7 +6,7 @@ import {
   SelectValue,
 } from "@neet/ui-kit";
 
-export type TickSizeSelectProps<TOption extends string = string> = {
+type TickSizeSelectProps<TOption extends string = string> = {
   onValueChange: (value: TOption) => void;
   options: readonly TOption[];
   value: TOption;

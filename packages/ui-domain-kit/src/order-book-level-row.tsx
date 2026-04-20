@@ -35,7 +35,7 @@ const orderBookLevelDepthVariants = cva(
   },
 );
 
-export type OrderBookLevelRowProps = {
+type OrderBookLevelRowProps = {
   amount: string;
   className?: string;
   depthRatio: number;
@@ -57,7 +57,7 @@ export function OrderBookLevelRow({
   amount,
   className,
   depthRatio,
-                                    variant,
+  variant,
   price,
   total,
 }: OrderBookLevelRowProps) {

@@ -423,3 +423,11 @@ This file records the user prompts from the beginning of this conversation in ch
 ## 63. Commit New Components And Usage
 
 > Please commit these new component files and the actual usage block.
+
+## 64. Clean Up Domain Kit Exports
+
+> We don't need to export properties from domain kit. Please clean up the domain UI kit library.
+
+## 65. Commit Domain Kit Cleanup
+
+> Commit please
