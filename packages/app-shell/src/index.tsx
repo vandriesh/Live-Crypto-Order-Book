@@ -1,8 +1,9 @@
 import type { ReactNode } from "react";
-import { ChevronRight, Ellipsis, Search, Star } from "lucide-react";
-import { NavLink } from "react-router";
+import btcLogo from "~/assets/market-icons/btc.svg";
+import ethLogo from "~/assets/market-icons/eth.svg";
+import solLogo from "~/assets/market-icons/sol.svg";
 
-import { Button } from "@neet/ui-kit";
+import { formatMarketLabel } from "@neet/utils";
 
 type AppShellProps = {
   children: ReactNode;
@@ -12,36 +13,11 @@ type AppShellProps = {
   marketType: string;
 };
 
-function formatMarketLabel(market: string) {
-  const quote = market.slice(-4);
-  const base = market.slice(0, -4);
-
-  return `${base}/${quote}`;
-}
-
-function PlaceholderPanel({
-  title,
-  description,
-}: {
-  title: string;
-  description: string;
-}) {
-  return (
-    <section className="rounded-[24px] border border-shell-border bg-shell-surface p-5 shadow-[0_24px_80px_-48px_rgba(0,0,0,0.9)]">
-      <div className="flex items-center justify-between">
-        <h3 className="text-sm font-semibold text-white">{title}</h3>
-        <span className="rounded-full border border-shell-border bg-shell-surface-elevated px-2 py-1 text-[10px] uppercase tracking-[0.18em] text-shell-text-faint">
-          placeholder
-        </span>
-      </div>
-      <div className="mt-6 flex min-h-52 items-center justify-center rounded-[18px] border border-dashed border-shell-border-strong bg-shell-surface-alt/70 p-6 text-center">
-        <p className="max-w-48 text-sm leading-6 text-shell-text-muted">
-          {description}
-        </p>
-      </div>
-    </section>
-  );
-}
+const marketLogoByAsset = {
+  BTC: btcLogo,
+  ETH: ethLogo,
+  SOL: solLogo,
+} as const;
 
 export function AppShell({
   children,
@@ -51,6 +27,9 @@ export function AppShell({
   marketType,
 }: AppShellProps) {
   const currentMarketLabel = formatMarketLabel(currentMarket);
+  const currentMarketAsset = currentMarket.toUpperCase().replace(/USDC$/, "");
+  const currentMarketLogoSrc =
+    marketLogoByAsset[currentMarketAsset as keyof typeof marketLogoByAsset];
 
   return (
     <div className="min-h-screen bg-shell-bg text-foreground">
@@ -95,18 +74,48 @@ export function AppShell({
               </p>
               <div className="flex flex-col gap-2">
                 {markets.map((market) => (
-                  <NavLink
+                  <a
                     key={market}
-                    to={`/en/trade/${market}?type=${marketType}`}
-                    className={({ isActive }) =>
-                      isActive
+                    href={`/en/trade/${market}?type=${marketType}`}
+                    className={
+                      market === currentMarket
                         ? "flex items-center justify-between rounded-xl border border-shell-border-strong bg-shell-surface-elevated px-3 py-2.5 text-sm text-white"
                         : "flex items-center justify-between rounded-xl border border-shell-border bg-shell-surface-alt px-3 py-2.5 text-sm text-shell-text-muted transition hover:border-shell-border-strong hover:text-white"
                     }
                   >
-                    <span className="font-medium">{formatMarketLabel(market)}</span>
-                    <Star className="size-3.5 text-shell-text-faint" />
-                  </NavLink>
+                    <span className="flex items-center gap-2.5 font-medium">
+                      {marketLogoByAsset[
+                        market.toUpperCase().replace(/USDC$/, "") as keyof typeof marketLogoByAsset
+                      ] ? (
+                        <img
+                          alt={`${market} logo`}
+                          className="rounded-full"
+                          height={18}
+                          src={
+                            marketLogoByAsset[
+                              market.toUpperCase().replace(/USDC$/, "") as keyof typeof marketLogoByAsset
+                            ]
+                          }
+                          width={18}
+                        />
+                      ) : (
+                        <span
+                          aria-hidden="true"
+                          className="inline-flex items-center justify-center rounded-full border border-shell-border bg-shell-surface-elevated font-mono text-[10px] font-semibold tracking-[0.16em] text-shell-text-muted"
+                          style={{ height: 18, width: 18 }}
+                        >
+                          {market.slice(0, 3).toUpperCase()}
+                        </span>
+                      )}
+                      {formatMarketLabel(market)}
+                    </span>
+                    <span
+                      aria-hidden="true"
+                      className="text-xs leading-none text-shell-text-faint"
+                    >
+                      ☆
+                    </span>
+                  </a>
                 ))}
               </div>
             </div>
@@ -118,23 +127,38 @@ export function AppShell({
             <div className="flex items-center justify-between gap-4">
               <div className="flex items-center gap-2 text-sm text-shell-text-muted">
                 <span>Trade</span>
-                <ChevronRight className="size-3.5 text-shell-text-faint" />
+                <span aria-hidden="true" className="text-shell-text-faint">
+                  ›
+                </span>
                 <span className="capitalize">{marketType}</span>
-                <ChevronRight className="size-3.5 text-shell-text-faint" />
+                <span aria-hidden="true" className="text-shell-text-faint">
+                  ›
+                </span>
                 <span className="font-medium text-white">{currentMarketLabel}</span>
               </div>
 
               <div className="flex items-center gap-2">
-                <Button variant="ghost" size="sm" className="text-shell-text-muted hover:bg-shell-surface-elevated hover:text-white">
-                  <Search data-icon="inline-start" />
+                <button
+                  className="inline-flex h-9 items-center gap-2 rounded-md px-3 text-sm text-shell-text-muted transition hover:bg-shell-surface-elevated hover:text-white"
+                  type="button"
+                >
+                  <span aria-hidden="true" className="text-sm leading-none">
+                    ⌕
+                  </span>
                   Search
-                </Button>
-                <Button variant="outline" size="sm" className="border-shell-border bg-shell-surface-alt text-shell-text-muted hover:bg-shell-surface-elevated hover:text-white">
+                </button>
+                <button
+                  className="inline-flex h-9 items-center rounded-md border border-shell-border bg-shell-surface-alt px-3 text-sm text-shell-text-muted transition hover:bg-shell-surface-elevated hover:text-white"
+                  type="button"
+                >
                   Login
-                </Button>
-                <Button size="sm" className="bg-gradient-to-r from-shell-brand to-shell-brand-alt text-white hover:opacity-90">
+                </button>
+                <button
+                  className="inline-flex h-9 items-center rounded-md bg-gradient-to-r from-shell-brand to-shell-brand-alt px-3 text-sm text-white transition hover:opacity-90"
+                  type="button"
+                >
                   Create Account
-                </Button>
+                </button>
               </div>
             </div>
           </header>
@@ -143,9 +167,23 @@ export function AppShell({
             <section className="mb-4 rounded-[20px] border border-shell-border-strong bg-shell-surface px-5 py-4 shadow-[0_24px_80px_-48px_rgba(0,0,0,0.9)]">
               <div className="flex flex-wrap items-center justify-between gap-4">
                 <div className="flex items-center gap-3">
-                  <div className="flex size-11 items-center justify-center rounded-full bg-gradient-to-br from-shell-brand to-shell-brand-alt text-xs font-bold tracking-[0.12em] text-white">
-                    {currentMarketLabel.slice(0, 2)}
-                  </div>
+                  {currentMarketLogoSrc ? (
+                    <img
+                      alt={`${currentMarket} logo`}
+                      className="rounded-full"
+                      height={44}
+                      src={currentMarketLogoSrc}
+                      width={44}
+                    />
+                  ) : (
+                    <span
+                      aria-hidden="true"
+                      className="inline-flex items-center justify-center rounded-full border border-shell-border bg-shell-surface-elevated font-mono text-[10px] font-semibold tracking-[0.16em] text-shell-text-muted"
+                      style={{ height: 44, width: 44 }}
+                    >
+                      {currentMarket.slice(0, 3).toUpperCase()}
+                    </span>
+                  )}
                   <div>
                     <div className="flex items-center gap-2">
                       <h1 className="font-mono text-2xl font-semibold text-white">
@@ -270,9 +308,12 @@ export function AppShell({
                         <div className="rounded-xl border border-shell-border px-3 py-3 text-shell-text-faint">
                           Amount
                         </div>
-                        <Button className="w-full bg-book-bid text-[#06150E] hover:bg-book-bid/90">
+                        <button
+                          className="w-full rounded-md bg-book-bid px-3 py-2 text-sm font-medium text-[#06150E] transition hover:bg-book-bid/90"
+                          type="button"
+                        >
                           Log In
-                        </Button>
+                        </button>
                       </div>
                     </div>
                     <div className="rounded-[18px] border border-shell-border bg-shell-surface-alt p-4">
@@ -287,9 +328,12 @@ export function AppShell({
                         <div className="rounded-xl border border-shell-border px-3 py-3 text-shell-text-faint">
                           Total
                         </div>
-                        <Button className="w-full bg-book-ask text-white hover:bg-book-ask/90">
+                        <button
+                          className="w-full rounded-md bg-book-ask px-3 py-2 text-sm font-medium text-white transition hover:bg-book-ask/90"
+                          type="button"
+                        >
                           Log In
-                        </Button>
+                        </button>
                       </div>
                     </div>
                   </div>
@@ -349,7 +393,9 @@ export function AppShell({
                         My Trades
                       </button>
                     </div>
-                    <Ellipsis className="size-4 text-shell-text-faint" />
+                    <span aria-hidden="true" className="text-shell-text-faint">
+                      ...
+                    </span>
                   </div>
                   <div className="mt-4 space-y-3">
                     {[
@@ -373,7 +419,9 @@ export function AppShell({
                 <section className="rounded-[24px] border border-shell-border bg-shell-surface p-5 shadow-[0_24px_80px_-48px_rgba(0,0,0,0.9)]">
                   <div className="flex items-center justify-between">
                     <h3 className="text-sm font-semibold text-white">Top Movers</h3>
-                    <ChevronRight className="size-4 text-shell-text-faint" />
+                    <span aria-hidden="true" className="text-shell-text-faint">
+                      ›
+                    </span>
                   </div>
                   <div className="mt-4 flex gap-2 text-xs text-shell-text-muted">
                     {["All", "Change", "Volume"].map((item, index) => (

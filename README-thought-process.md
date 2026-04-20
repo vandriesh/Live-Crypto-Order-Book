@@ -400,3 +400,26 @@ This file records the user prompts from the beginning of this conversation in ch
 ## 58. Amend Utils Commit With Thought Log
 
 > Please also include in this commit [README-thought-process.md](README-thought-process.md) (amend)
+
+## 59. Add Order Book Display Provider
+
+> Now I think to add a user data display provider.
+> That will take care of preparing data according to the order book display pop-up so these settings will tell the provider how to format data. The data that will get to the price components will be already consumable.
+>
+> Please use a reducer and the actions. We need to reflect what user picks up from that pop-up.
+
+## 60. Extract Ratio Component
+
+> Please create UI domain component called ratio , do you have better name for the component at the bottom of order book container?
+
+## 61. Make Ratio Widget One Line
+
+> also to change widget look - 1 row `B % [=======|++++++++] % S`
+
+## 62. Extract Tick Size Options And Wire Grouping
+
+> Let's extract text size options.
+
+## 63. Commit New Components And Usage
+
+> Please commit these new component files and the actual usage block.

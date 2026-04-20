@@ -20,6 +20,8 @@
       "@neet/binance-connection-manager": ["./packages/binance-connection-manager/src/index.ts"],
       "@neet/data": ["./packages/data/src/index.ts"],
       "@neet/order-book": ["./packages/order-book/src/index.tsx"],
+      "@neet/utils": ["./packages/utils/src/index.ts"],
+      "@neet/ui-domain-kit": ["./packages/ui-domain-kit/src/index.ts"],
       "@neet/ui-kit": ["./packages/ui-kit/src/index.ts"]
     },
     "esModuleInterop": true,
