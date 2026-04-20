@@ -158,3 +158,69 @@ This file records the user prompts from the beginning of this conversation in ch
 
 > next don't use abs (aliases to include files form same package
 > make sure next components additions won't use abs path as well
+
+## 22. App Shell Design Analysis Request
+
+> # Files mentioned by the user:
+>
+> ## YEET Order Book _standalone_.html: /Users/vandries/Downloads/YEET Order Book _standalone_.html
+>
+> ## My request for Codex:
+> here is the design I've created using Claude Design - this will serve as code for new packages @neet/app-shell
+> 1. analyze the html - create a lsit of ui radix components to add added to ui-kit
+> 2. after adding them we will customize them to look according to the html styles (which should be embedd in the elements) so we only need to translate into
+> a. theme colors
+> b. use apropiate class names/utils
+> 3. app shell is responsible for the general layout coping Binance layout and add:
+> a. a placeholder component to be added to the order book package
+> c. these are  imported  in the app
+> I see these imports as
+> <AppShell>
+>   <Child data-id="order-book" />
+> </AppShell>
+> which is kinda slot implementation - we provision child the html data-id attr
+> so AppShell parse the children and arrange them in their slots;
+>
+> do you think it's overengineering ? much simpler to use {children} for now and worry about slots when/if we have more elements to include ?
+
+## 23. Container Naming Change
+
+> rename OrderBookPlaceholder -> OrderBookContainer
+
+## 24. Order Book Controls Scope Update
+
+> # Files mentioned by the user:
+>
+> ## Screenshot 2026-04-20 at 13.37.02.png: /Users/vandries/Desktop/Screenshot 2026-04-20 at 13.37.02.png
+>
+> ## Screenshot 2026-04-20 at 13.37.37.png: /Users/vandries/Desktop/Screenshot 2026-04-20 at 13.37.37.png
+>
+> ## Screenshot 2026-04-20 at 13.37.25.png: /Users/vandries/Desktop/Screenshot 2026-04-20 at 13.37.25.png
+>
+> ## Screenshot 2026-04-20 at 13.37.12.png: /Users/vandries/Desktop/Screenshot 2026-04-20 at 13.37.12.png
+>
+> ## My request for Codex:
+> may I remind you app sheel is mostly 1:1 styles for all BUT ORderBookContainer
+> so consider only elements we need for OrderBookContainer.
+> I see
+> - Check boxes
+> - Radio buttons
+> - Switches
+> - Drop downs
+> add these for now;
+>
+> For app shell, you can copy the same HTML. Don't bother spending time arranging them; it's just a shell and it's out of scope of this code challenge.
+>
+> Also update Old "YEET" to "NEET" top left logo;
+> 2nd) would be to update tailwinds theme
+
+## 25. Shell Layout Rearrangement Request
+
+> good for 2st version, minor update layout according the this mock
+> - OrderBook - is left panel
+> - center
+> - and righ panel arrange according to the Binance screenshot I've attached
+
+## 26. Commit Readiness Confirmation
+
+> So mainly in this batch we edit up shell and order book placeholder. I think it's ready to be committed.

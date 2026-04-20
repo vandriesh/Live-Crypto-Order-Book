@@ -1,104 +1,276 @@
-import { dataFeatureSummary, supportedMarkets } from "@neet/data";
-import {Button} from "@neet/ui-kit";
+import { Ellipsis, Minus, Plus } from "lucide-react";
+import { useState } from "react";
 
-type OrderBookFeatureProps = {
-  country: string;
-};
+import {
+  Checkbox,
+  RadioGroup,
+  RadioGroupItem,
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+  Switch,
+  cn,
+} from "@neet/ui-kit";
 
-export function OrderBookFeature({ country }: OrderBookFeatureProps) {
+const orderRows = [
+  { price: "75,181.25", amount: "0.00019", total: "14.28399", side: "ask" },
+  { price: "75,180.69", amount: "1.05088", total: "79.00K", side: "ask", depth: "w-24" },
+  { price: "75,180.20", amount: "0.12660", total: "9.51K", side: "ask", depth: "w-12" },
+  { price: "75,179.91", amount: "0.00014", total: "10.52K", side: "ask", depth: "w-20" },
+  { price: "75,178.43", amount: "4.56425", total: "343.13K", side: "ask", depth: "w-28" },
+  { price: "75,178.00", amount: "$ 75,178.00", total: "", side: "spread" },
+  { price: "75,177.99", amount: "0.42043", total: "31.60K", side: "bid", depth: "w-20" },
+  { price: "75,177.95", amount: "0.00028", total: "21.04", side: "bid", depth: "w-10" },
+  { price: "75,176.64", amount: "0.00008", total: "6.014131", side: "bid", depth: "w-8" },
+  { price: "75,175.99", amount: "0.00007", total: "5.262319", side: "bid", depth: "w-12" },
+  { price: "75,175.41", amount: "0.00227", total: "170.64818", side: "bid", depth: "w-24" },
+];
+
+const tickSizes = ["0.01", "0.1", "1", "10", "50", "100", "1000"];
+
+function IconToggle({
+  active,
+  tone,
+}: {
+  active?: boolean;
+  tone: "ask" | "bid" | "both";
+}) {
   return (
-    <main className="min-h-screen bg-slate-950 px-6 py-10 text-slate-100">
-      <div className="mx-auto flex w-full max-w-5xl flex-col gap-8">
-        <header className="flex flex-col gap-4 rounded-3xl border border-slate-800 bg-slate-900/80 p-6 shadow-2xl shadow-slate-950/40">
-          <div className="flex flex-wrap items-center gap-3 text-xs uppercase tracking-[0.3em] text-emerald-400">
-            <span>NEET crypto</span>
-            <span className="rounded-full border border-emerald-500/30 bg-emerald-500/10 px-3 py-1 tracking-[0.2em] text-emerald-300">
-              placeholder scaffold
-            </span>
-          </div>
-          <div className="space-y-3">
-            <h1 className="text-4xl font-semibold tracking-tight text-white">
-              Order book challenge workspace
-            </h1>
-            <p className="max-w-3xl text-sm leading-7 text-slate-300">
-              This first pass locks in the package boundaries and alias wiring.
-              The real Binance-like order book behavior will be layered in
-              gradually, starting with the data package and the smart container.
-            </p>
-          </div>
-          <div className="flex flex-wrap gap-3 text-sm text-slate-200">
-            <div className="rounded-full border border-slate-700 bg-slate-800 px-4 py-2">
-              Viewer country: {country}
-            </div>
-            <div className="rounded-full border border-slate-700 bg-slate-800 px-4 py-2">
-              Markets queued: {supportedMarkets.join(", ")}
-            </div>
-          </div>
-        </header>
+    <button
+      type="button"
+      className={cn(
+        "flex h-6 w-7 items-center justify-center rounded-md border border-transparent transition",
+        active
+          ? "bg-shell-surface-elevated"
+          : "text-shell-text-faint hover:bg-shell-surface-elevated/80",
+      )}
+    >
+      <span className="flex gap-0.5">
+        <span
+          className={cn(
+            "h-2.5 w-1 rounded-sm",
+            tone === "ask" ? "bg-book-ask" : "bg-book-bid",
+          )}
+        />
+        <span
+          className={cn(
+            "h-3.5 w-1 rounded-sm",
+            tone === "both" ? "bg-shell-text-faint" : tone === "ask" ? "bg-book-ask/45" : "bg-book-bid/45",
+          )}
+        />
+      </span>
+    </button>
+  );
+}
 
-        <section className="grid gap-6 lg:grid-cols-[1.2fr_0.8fr]">
-          <article className="rounded-3xl border border-slate-800 bg-slate-900/80 p-6">
-            <div className="flex items-center justify-between gap-4">
-              <div>
-                <p className="text-xs uppercase tracking-[0.3em] text-slate-400">
-                  Package
-                </p>
-                <h2 className="mt-2 text-2xl font-semibold text-white">
-                  {dataFeatureSummary.packageName}
-                </h2>
+function LabeledCheckbox({
+  checked,
+  label,
+  onCheckedChange,
+}: {
+  checked: boolean;
+  label: string;
+  onCheckedChange: (checked: boolean) => void;
+}) {
+  return (
+    <label className="flex items-center gap-3 text-sm text-shell-text-muted">
+      <Checkbox
+        checked={checked}
+        onCheckedChange={(value) => onCheckedChange(Boolean(value))}
+        className="border-shell-border-strong bg-shell-surface-alt data-[state=checked]:border-white data-[state=checked]:bg-white data-[state=checked]:text-shell-bg"
+      />
+      <span>{label}</span>
+    </label>
+  );
+}
+
+export function OrderBookContainer() {
+  const [displayAverage, setDisplayAverage] = useState(true);
+  const [showRatio, setShowRatio] = useState(true);
+  const [roundingEnabled, setRoundingEnabled] = useState(true);
+  const [animationsEnabled, setAnimationsEnabled] = useState(false);
+  const [depthMode, setDepthMode] = useState("amount");
+  const [tickSize, setTickSize] = useState("0.01");
+
+  return (
+    <div className="flex h-full flex-col bg-shell-surface">
+      <div className="flex items-center justify-between border-b border-shell-border px-4 py-3">
+        <div>
+          <h2 className="text-sm font-semibold text-white">Order Book</h2>
+        </div>
+        <button type="button" className="text-shell-text-faint transition hover:text-white">
+          <Ellipsis className="size-4" />
+        </button>
+      </div>
+
+      <div className="flex items-center justify-between border-b border-shell-border px-4 py-2">
+        <div className="flex items-center gap-1">
+          <IconToggle tone="ask" />
+          <IconToggle tone="both" active />
+          <IconToggle tone="bid" />
+        </div>
+
+        <Select value={tickSize} onValueChange={setTickSize}>
+          <SelectTrigger className="h-7 min-w-20 border-shell-border bg-transparent px-2.5 font-mono text-sm text-white">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent className="min-w-32 border-shell-border bg-shell-surface-elevated text-shell-text-muted">
+            {tickSizes.map((option) => (
+              <SelectItem
+                key={option}
+                value={option}
+                className="font-mono text-sm focus:bg-shell-surface-alt focus:text-white"
+              >
+                {option}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </div>
+
+      <div className="grid flex-1 gap-4 p-4">
+        <section className="rounded-[20px] border border-shell-border bg-shell-surface-alt/80 p-4">
+          <div className="space-y-5">
+            <div>
+              <p className="text-xs text-shell-text-faint">Order Book Display</p>
+              <div className="mt-3 flex flex-col gap-3">
+                <LabeledCheckbox
+                  checked={displayAverage}
+                  label="Display Avg.&Sum"
+                  onCheckedChange={setDisplayAverage}
+                />
+                <LabeledCheckbox
+                  checked={showRatio}
+                  label="Show Buy/Sell Ratio"
+                  onCheckedChange={setShowRatio}
+                />
+                <LabeledCheckbox
+                  checked={roundingEnabled}
+                  label="Rounding"
+                  onCheckedChange={setRoundingEnabled}
+                />
               </div>
-              <span className="rounded-full border border-amber-500/30 bg-amber-500/10 px-3 py-1 text-xs font-medium uppercase tracking-[0.2em] text-amber-300">
-                {dataFeatureSummary.status}
-              </span>
             </div>
 
-            <p className="mt-4 text-sm leading-7 text-slate-300">
-              {dataFeatureSummary.responsibility}
-            </p>
-
-            <ul className="mt-6 space-y-3 text-sm text-slate-200">
-              {dataFeatureSummary.nextMilestones.map((item) => (
-                <li
-                  key={item}
-                  className="rounded-2xl border border-slate-800 bg-slate-950/60 px-4 py-3"
-                >
-                  {item}
-                </li>
-              ))}
-            </ul>
-          </article>
-
-          <aside className="rounded-3xl border border-slate-800 bg-slate-900/80 p-6">
-            <p className="text-xs uppercase tracking-[0.3em] text-slate-400">
-              Next package
-            </p>
-            <h2 className="mt-2 text-2xl font-semibold text-white">
-              @neet/order-book
-            </h2>
-            <p className="mt-4 text-sm leading-7 text-slate-300">
-              This package will become the smart container that owns book
-              orchestration, settings, and rendering. For now it intentionally
-              stays thin while the boundaries become clearer.
-            </p>
-
-            <div className="mt-6 rounded-3xl border border-dashed border-slate-700 bg-slate-950/40 p-5">
-              <p className="text-sm font-medium text-white">
-                Planned responsibilities
-              </p>
-              <ul className="mt-3 space-y-2 text-sm text-slate-300">
-                <li>Market switching UI</li>
-                <li>Bid and ask ladder rendering</li>
-                <li>Decimals and rounding controls</li>
-                <li>Ratio and depth visualization modes</li>
-              </ul>
+            <div>
+              <p className="text-xs text-shell-text-faint">Book Depth Visualization</p>
+              <RadioGroup
+                value={depthMode}
+                onValueChange={setDepthMode}
+                className="mt-3 gap-3"
+              >
+                <label className="flex items-center gap-3 text-sm text-shell-text-muted">
+                  <RadioGroupItem
+                    value="amount"
+                    className="border-shell-border-strong bg-transparent text-white"
+                  />
+                  <span>Amount</span>
+                </label>
+                <label className="flex items-center gap-3 text-sm text-shell-text-muted">
+                  <RadioGroupItem
+                    value="cumulative"
+                    className="border-shell-border-strong bg-transparent text-white"
+                  />
+                  <span>Cumulative</span>
+                </label>
+              </RadioGroup>
             </div>
-          </aside>
+
+            <div className="flex items-center justify-between gap-4">
+              <span className="text-sm text-shell-text-muted">Animations</span>
+              <Switch
+                checked={animationsEnabled}
+                onCheckedChange={setAnimationsEnabled}
+                className="data-[state=checked]:bg-white data-[state=unchecked]:bg-shell-surface-elevated"
+              />
+            </div>
+          </div>
         </section>
-        <section>
-          demo import
-          <Button>Hi</Button>
+
+        <section className="overflow-hidden rounded-[20px] border border-shell-border bg-shell-surface-alt">
+          <div className="grid grid-cols-[1fr_1fr_1fr] px-4 py-3 text-xs text-shell-text-faint">
+            <span>Price (USDT)</span>
+            <span className="text-right">Amount (BTC)</span>
+            <span className="text-right">Total</span>
+          </div>
+
+          <div className="px-2 pb-3">
+            {orderRows.map((row) => {
+              if (row.side === "spread") {
+                return (
+                  <div
+                    key={row.price}
+                    className="grid grid-cols-[1.2fr_1fr_auto] items-center border-y border-shell-border bg-shell-surface px-2 py-3"
+                  >
+                    <div className="flex items-center gap-2 font-mono text-[2rem] font-semibold leading-none text-book-bid">
+                      <span className="text-[11px] leading-none text-book-bid">
+                        <Plus className="size-3.5" />
+                      </span>
+                      {row.price}
+                    </div>
+                    <div className="font-mono text-sm text-shell-text-faint">
+                      {row.amount}
+                    </div>
+                    <ChevronRightGlyph />
+                  </div>
+                );
+              }
+
+              return (
+                <div
+                  key={`${row.side}-${row.price}`}
+                  className="relative grid grid-cols-[1fr_1fr_1fr] items-center px-2 py-1.5 font-mono text-sm"
+                >
+                  <div
+                    className={cn(
+                      "absolute top-1/2 right-2 h-6 -translate-y-1/2 rounded-sm",
+                      row.side === "ask" ? "bg-book-ask-soft" : "bg-book-bid-soft",
+                      row.depth ?? "w-16",
+                    )}
+                  />
+                  <span
+                    className={cn(
+                      "relative z-10",
+                      row.side === "ask" ? "text-book-ask" : "text-book-bid",
+                    )}
+                  >
+                    {row.price}
+                  </span>
+                  <span className="relative z-10 text-right text-shell-text-muted">
+                    {row.amount}
+                  </span>
+                  <span className="relative z-10 text-right text-shell-text-muted">
+                    {row.total}
+                  </span>
+                </div>
+              );
+            })}
+          </div>
+
+          {showRatio ? (
+            <div className="border-t border-shell-border px-4 py-3">
+              <div className="flex items-center justify-between text-xs font-medium">
+                <span className="text-book-bid">B 3.33%</span>
+                <span className="text-book-ask">96.66% S</span>
+              </div>
+              <div className="mt-2 flex h-1.5 overflow-hidden rounded-full bg-shell-surface-elevated">
+                <div className="w-[3.33%] bg-book-bid" />
+                <div className="w-[96.66%] bg-book-ask" />
+              </div>
+            </div>
+          ) : null}
         </section>
       </div>
-    </main>
+    </div>
+  );
+}
+
+function ChevronRightGlyph() {
+  return (
+    <span className="flex items-center justify-end text-shell-text-faint">
+      <Minus className="size-3.5 -rotate-45" />
+    </span>
   );
 }

@@ -16,6 +16,7 @@
     "baseUrl": ".",
     "paths": {
       "~/*": ["./app/*"],
+      "@neet/app-shell": ["./packages/app-shell/src/index.tsx"],
       "@neet/data": ["./packages/data/src/index.ts"],
       "@neet/order-book": ["./packages/order-book/src/index.tsx"],
       "@neet/ui-kit": ["./packages/ui-kit/src/index.ts"]

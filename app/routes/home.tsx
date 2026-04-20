@@ -1,5 +1,7 @@
 import { netlifyRouterContext } from "@netlify/vite-plugin-react-router/edge";
-import { OrderBookFeature } from "@neet/order-book";
+import { AppShell } from "@neet/app-shell";
+import { supportedMarkets } from "@neet/data";
+import { OrderBookContainer } from "@neet/order-book";
 
 import type { Route } from "./+types/home";
 
@@ -45,5 +47,9 @@ export async function loader({ context }: Route.LoaderArgs) {
 }
 
 export default function Home({ loaderData }: Route.ComponentProps) {
-  return <OrderBookFeature country={loaderData.country} />;
+  return (
+    <AppShell country={loaderData.country} markets={supportedMarkets}>
+      <OrderBookContainer />
+    </AppShell>
+  );
 }

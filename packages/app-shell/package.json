@@ -1,0 +1,5 @@
+{
+  "name": "@neet/app-shell",
+  "private": true,
+  "type": "module"
+}
