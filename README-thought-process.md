@@ -224,3 +224,31 @@ This file records the user prompts from the beginning of this conversation in ch
 ## 26. Commit Readiness Confirmation
 
 > So mainly in this batch we edit up shell and order book placeholder. I think it's ready to be committed.
+
+## 27. Trade Route And Market Switch Request
+
+> now let's  quickly create this route:
+> ```
+> en/trade/:market?type=spot
+> ```
+> 2) update sidebar for 3 markets;
+> quoting:
+> ```
+> Allow the user to change the currently selected market. You can choose
+> any 3 markets you prefer (e.g. BTC/USDC, ETH/USDC etc). The
+> changing of the market only needs to be functional, you can use a
+> standard selector, buttons or any other method you prefer, and it can be
+> anywhere on the page.
+> ``
+
+## 28. Commit Route Switching
+
+> Okay please commit this route switching works.
+
+## 29. Remove Home Route Request
+
+> Also remove the home route and make sure the default route we open with the first market.
+
+## 30. Amend Previous Commit
+
+> please commit as part of previous commit (amend)

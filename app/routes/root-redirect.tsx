@@ -1,18 +1,19 @@
+import { redirect } from "react-router";
 import { netlifyRouterContext } from "@netlify/vite-plugin-react-router/edge";
-import { AppShell } from "@neet/app-shell";
-import { supportedMarkets } from "@neet/data";
-import { OrderBookContainer } from "@neet/order-book";
+import { defaultMarket } from "@neet/data";
 
-import type { Route } from "./+types/home";
+import type { Route } from "./+types/root-redirect";
 
-export function meta({ }: Route.MetaArgs) {
+export function meta({}: Route.MetaArgs) {
   return [
     { title: "NEET Crypto Order Book" },
-    { name: "description", content: "Gradual architecture scaffold for the YEET order book challenge." },
+    {
+      name: "description",
+      content: "Gradual architecture scaffold for the YEET order book challenge.",
+    },
   ];
 }
 
-// Example middleware that adds a custom header
 const customDateHeaderMiddleware: Route.MiddlewareFunction = async (
   _request,
   next,
@@ -22,7 +23,6 @@ const customDateHeaderMiddleware: Route.MiddlewareFunction = async (
   return response;
 };
 
-// Example middleware that uses Netlify context
 const logMiddleware: Route.MiddlewareFunction = async ({
   request,
   context,
@@ -43,13 +43,13 @@ export async function loader({ context }: Route.LoaderArgs) {
   const country =
     context.get(netlifyRouterContext).geo?.country?.name ?? "unknown location";
 
-  return { country };
+  console.log(
+    `Redirecting viewer from ${country} to default market ${defaultMarket}`,
+  );
+
+  throw redirect(`/en/trade/${defaultMarket}?type=spot`);
 }
 
-export default function Home({ loaderData }: Route.ComponentProps) {
-  return (
-    <AppShell country={loaderData.country} markets={supportedMarkets}>
-      <OrderBookContainer />
-    </AppShell>
-  );
+export default function RootRedirect() {
+  return null;
 }

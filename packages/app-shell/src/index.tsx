@@ -1,5 +1,6 @@
 import type { ReactNode } from "react";
 import { ChevronRight, Ellipsis, Search, Star } from "lucide-react";
+import { NavLink } from "react-router";
 
 import { Button } from "@neet/ui-kit";
 
@@ -7,6 +8,8 @@ type AppShellProps = {
   children: ReactNode;
   country: string;
   markets: readonly string[];
+  currentMarket: string;
+  marketType: string;
 };
 
 function formatMarketLabel(market: string) {
@@ -40,8 +43,14 @@ function PlaceholderPanel({
   );
 }
 
-export function AppShell({ children, country, markets }: AppShellProps) {
-  const marketLabels = markets.map(formatMarketLabel);
+export function AppShell({
+  children,
+  country,
+  markets,
+  currentMarket,
+  marketType,
+}: AppShellProps) {
+  const currentMarketLabel = formatMarketLabel(currentMarket);
 
   return (
     <div className="min-h-screen bg-shell-bg text-foreground">
@@ -82,17 +91,22 @@ export function AppShell({ children, country, markets }: AppShellProps) {
 
             <div>
               <p className="mb-3 text-[10px] uppercase tracking-[0.24em] text-shell-text-faint">
-                Watchlist
+                Markets
               </p>
               <div className="flex flex-col gap-2">
-                {marketLabels.map((item) => (
-                  <div
-                    key={item}
-                    className="flex items-center justify-between rounded-xl border border-shell-border bg-shell-surface-alt px-3 py-2.5 text-sm text-shell-text-muted"
+                {markets.map((market) => (
+                  <NavLink
+                    key={market}
+                    to={`/en/trade/${market}?type=${marketType}`}
+                    className={({ isActive }) =>
+                      isActive
+                        ? "flex items-center justify-between rounded-xl border border-shell-border-strong bg-shell-surface-elevated px-3 py-2.5 text-sm text-white"
+                        : "flex items-center justify-between rounded-xl border border-shell-border bg-shell-surface-alt px-3 py-2.5 text-sm text-shell-text-muted transition hover:border-shell-border-strong hover:text-white"
+                    }
                   >
-                    <span className="font-medium text-white">{item}</span>
+                    <span className="font-medium">{formatMarketLabel(market)}</span>
                     <Star className="size-3.5 text-shell-text-faint" />
-                  </div>
+                  </NavLink>
                 ))}
               </div>
             </div>
@@ -105,9 +119,9 @@ export function AppShell({ children, country, markets }: AppShellProps) {
               <div className="flex items-center gap-2 text-sm text-shell-text-muted">
                 <span>Trade</span>
                 <ChevronRight className="size-3.5 text-shell-text-faint" />
-                <span>Spot</span>
+                <span className="capitalize">{marketType}</span>
                 <ChevronRight className="size-3.5 text-shell-text-faint" />
-                <span className="font-medium text-white">{marketLabels[0]}</span>
+                <span className="font-medium text-white">{currentMarketLabel}</span>
               </div>
 
               <div className="flex items-center gap-2">
@@ -130,12 +144,12 @@ export function AppShell({ children, country, markets }: AppShellProps) {
               <div className="flex flex-wrap items-center justify-between gap-4">
                 <div className="flex items-center gap-3">
                   <div className="flex size-11 items-center justify-center rounded-full bg-gradient-to-br from-shell-brand to-shell-brand-alt text-xs font-bold tracking-[0.12em] text-white">
-                    {marketLabels[0].slice(0, 2)}
+                    {currentMarketLabel.slice(0, 2)}
                   </div>
                   <div>
                     <div className="flex items-center gap-2">
                       <h1 className="font-mono text-2xl font-semibold text-white">
-                        {marketLabels[0]}
+                        {currentMarketLabel}
                       </h1>
                       <span className="inline-flex items-center gap-1 rounded-full border border-book-bid/20 bg-book-bid/10 px-2 py-1 text-[10px] font-semibold tracking-[0.18em] text-book-bid">
                         <span className="size-1.5 rounded-full bg-book-bid" />
