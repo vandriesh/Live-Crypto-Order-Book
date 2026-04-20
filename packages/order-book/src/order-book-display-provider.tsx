@@ -1,8 +1,11 @@
 import { useMarketData } from "@neet/binance-connection-manager";
 import {
+  ceilToTick,
+  floorToTick,
   formatCompactNumber,
   formatMarketLabel,
   formatPrice,
+  formatPriceForDisplay,
   formatQuantity,
 } from "@neet/utils";
 import {
@@ -20,6 +23,7 @@ const visibleOrderBookLevels = 15;
 
 type TickSizeOption = (typeof tickSizeOptions)[number];
 type DepthMode = "amount" | "cumulative";
+type VisibleOperation = "ask" | "bid" | "both";
 
 type OrderBookDisplayState = {
   animationsEnabled: boolean;
@@ -28,6 +32,7 @@ type OrderBookDisplayState = {
   roundingEnabled: boolean;
   showRatio: boolean;
   tickSize: TickSizeOption;
+  visibleOperation: VisibleOperation;
 };
 
 type OrderBookDisplayAction =
@@ -36,7 +41,8 @@ type OrderBookDisplayAction =
   | { type: "set_display_average"; value: boolean }
   | { type: "set_rounding_enabled"; value: boolean }
   | { type: "set_show_ratio"; value: boolean }
-  | { type: "set_tick_size"; value: TickSizeOption };
+  | { type: "set_tick_size"; value: TickSizeOption }
+  | { type: "set_visible_operation"; value: VisibleOperation };
 
 type DisplayRow = {
   amount: string;
@@ -70,6 +76,7 @@ type OrderBookDisplayContextValue = {
     setRoundingEnabled: (value: boolean) => void;
     setShowRatio: (value: boolean) => void;
     setTickSize: (value: TickSizeOption) => void;
+    setVisibleOperation: (value: VisibleOperation) => void;
   };
   state: OrderBookDisplayState;
   tickSizeOptions: readonly TickSizeOption[];
@@ -83,6 +90,7 @@ const initialDisplayState: OrderBookDisplayState = {
   roundingEnabled: true,
   showRatio: true,
   tickSize: "0.01",
+  visibleOperation: "both",
 };
 
 const OrderBookDisplayContext =
@@ -105,58 +113,24 @@ function orderBookDisplayReducer(
       return { ...state, showRatio: action.value };
     case "set_tick_size":
       return { ...state, tickSize: action.value };
+    case "set_visible_operation":
+      return { ...state, visibleOperation: action.value };
     default:
       return state;
   }
 }
 
-function roundToTick(value: number, tickSize: TickSizeOption) {
-  const tickValue = Number(tickSize);
-
-  if (!Number.isFinite(tickValue) || tickValue <= 0) {
-    return value;
-  }
-
-  return Math.round(value / tickValue) * tickValue;
+function getVisibleOrderBookLevels(visibleOperation: VisibleOperation) {
+  return visibleOperation === "both"
+    ? visibleOrderBookLevels
+    : visibleOrderBookLevels * 2;
 }
 
-function floorToTick(value: number, tickSize: TickSizeOption) {
-  const tickValue = Number(tickSize);
-
-  if (!Number.isFinite(tickValue) || tickValue <= 0) {
-    return value;
-  }
-
-  return Math.floor(value / tickValue) * tickValue;
-}
-
-function ceilToTick(value: number, tickSize: TickSizeOption) {
-  const tickValue = Number(tickSize);
-
-  if (!Number.isFinite(tickValue) || tickValue <= 0) {
-    return value;
-  }
-
-  return Math.ceil(value / tickValue) * tickValue;
-}
-
-function getTickFractionDigits(tickSize: TickSizeOption) {
-  const [, decimals = ""] = tickSize.split(".");
-  return decimals.length;
-}
-
-function formatPriceForDisplay(
-  value: number,
-  roundingEnabled: boolean,
-  tickSize: TickSizeOption,
+function isOperationVisible(
+  visibleOperation: VisibleOperation,
+  operation: "ask" | "bid",
 ) {
-  const nextValue = roundingEnabled ? roundToTick(value, tickSize) : value;
-  const fractionDigits = getTickFractionDigits(tickSize);
-
-  return new Intl.NumberFormat("en-US", {
-    minimumFractionDigits: fractionDigits,
-    maximumFractionDigits: Math.max(fractionDigits, 3),
-  }).format(nextValue);
+  return visibleOperation === "both" || visibleOperation === operation;
 }
 
 function createDisplayRows(args: {
@@ -267,6 +241,13 @@ export function OrderBookDisplayProvider({
   const value = useMemo<OrderBookDisplayContextValue>(() => {
     const marketLabel = formatMarketLabel(market);
     const [baseAsset, quoteAsset] = marketLabel.split("/");
+    const visibleLevels = getVisibleOrderBookLevels(state.visibleOperation);
+    const visibleAsks = isOperationVisible(state.visibleOperation, "ask")
+      ? snapshot.asks.slice(0, visibleLevels)
+      : [];
+    const visibleBids = isOperationVisible(state.visibleOperation, "bid")
+      ? snapshot.bids.slice(0, visibleLevels)
+      : [];
     const buyTotal = snapshot.bids.reduce((sum, level) => sum + level.quantity, 0);
     const sellTotal = snapshot.asks.reduce((sum, level) => sum + level.quantity, 0);
     const combinedTotal = buyTotal + sellTotal || 1;
@@ -281,15 +262,14 @@ export function OrderBookDisplayProvider({
 
     return {
       actions: {
-        setAnimationsEnabled: (value) =>
-          dispatch({ type: "set_animations_enabled", value }),
+        setAnimationsEnabled: (value) => dispatch({ type: "set_animations_enabled", value }),
         setDepthMode: (value) => dispatch({ type: "set_depth_mode", value }),
-        setDisplayAverage: (value) =>
-          dispatch({ type: "set_display_average", value }),
-        setRoundingEnabled: (value) =>
-          dispatch({ type: "set_rounding_enabled", value }),
+        setDisplayAverage: (value) => dispatch({ type: "set_display_average", value }),
+        setRoundingEnabled: (value) => dispatch({ type: "set_rounding_enabled", value }),
         setShowRatio: (value) => dispatch({ type: "set_show_ratio", value }),
         setTickSize: (value) => dispatch({ type: "set_tick_size", value }),
+        setVisibleOperation: (value) =>
+          dispatch({ type: "set_visible_operation", value }),
       },
       state,
       tickSizeOptions,
@@ -297,7 +277,7 @@ export function OrderBookDisplayProvider({
         asks: createDisplayRows({
           depthMode: state.depthMode,
           levels: bucketOrderBookLevels({
-            levels: snapshot.asks.slice(0, visibleOrderBookLevels),
+            levels: visibleAsks,
             operation: "ask",
             tickSize: state.tickSize,
           }).reverse(),
@@ -309,7 +289,7 @@ export function OrderBookDisplayProvider({
         bids: createDisplayRows({
           depthMode: state.depthMode,
           levels: bucketOrderBookLevels({
-            levels: snapshot.bids.slice(0, visibleOrderBookLevels),
+            levels: visibleBids,
             operation: "bid",
             tickSize: state.tickSize,
           }),

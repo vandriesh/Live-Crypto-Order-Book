@@ -21,4 +21,10 @@ export {
   SelectValue,
 } from "./components/ui/select";
 export { Switch } from "./components/ui/switch";
+export {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "./components/ui/tooltip";
 export { cn } from "./lib/utils";

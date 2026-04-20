@@ -456,3 +456,85 @@ This file records the user prompts from the beginning of this conversation in ch
 ## 70. Amend Display Commit With Thought Log
 
 > awesome, commit with amend with [README-thought-process.md](README-thought-process.md)
+
+## 71. Extract Math Helpers From Display Provider
+
+> extract  all function[order-book-display-provider.tsx](packages/order-book/src/order-book-display-provider.tsx) that matches uitls package's utils nature (math utils functions)
+
+## 72. Extract Visibility Toggle And Expand Single Side
+
+> Extract IconToggle to the domain ui kit, also fix the look, the principle is simple: there are two areas, one is red, one is green. When both need to be visible we do show both with opacity 1. If we click I can toggle with ask then we show one bar red and the other green with opacity, let's say, half.
+>
+> Also:
+> - do change tone to the variation. To be consequent .
+> - Do it, user display action, to first of all hide, show, or toggle there, asks or bids, or show both. Once it's besides the state, we need to show supply. The remaining space we need to expand to occupy the remaining space so all the overbook order book progress would double the numbers we show. For instance when both bid and ask are present we show 15 each; if one is hidden we show 30 of same.
+>
+> Make sense?
+
+## 73. Keep Mid Price Row Visible In Single Side Mode
+
+> The split component is not visible if only one ask or bid is selected. The OrderBookMidPriceRow component is pushed down.
+
+## 74. Remove Toggle Button Chrome
+
+> Looks good. Now we need to remove selected button, rounded border and background
+>
+> The original image
+
+## 75. Fix Order Book Visual Order
+
+> Also we need to dictate visual order for the elements in the order book.
+> ```
+> //buy only
+> [buy]
+> [OrderBookMidPriceRow]
+>
+> //sellonly
+> [sell]
+> [OrderBookMidPriceRow]
+>
+> //both
+> [sell]
+> [OrderBookMidPriceRow]
+> [buy]
+> ```
+> So you see, OrderBookMidPriceRow should be in between or at the end.
+
+## 76. Add Tooltips To Visibility Toggle
+
+> So we need to introduce a tooltip which looks like the attached image for the toggle icons.
+>
+> Both means order. Says order book singles say "buy order" and  "sell order".
+
+## 77. Smooth Tooltip Show Height Transition
+
+> Also update the tooltip show height to have a smooth transition (hidden -> visibility & viceversa).
+
+## 78. Slow Tooltip Fade In
+
+> The fade-in transition should last longer, let's try 1 second.
+
+## 79. Try Tailwind Animate Fade In Utility
+
+> let's try tailwind utility
+> `animate-fade-in duration-1000` instead
+
+## 80. Add Animate In Out Helpers To Tooltip
+
+> Make sure you add `animate-in / animate-out` helpers
+
+## 81. Find Tailwind CSS Entry File
+
+> Can you help me find the file that includes and imports the Tailwind CSS and you to add Tailwind Animate CSS?
+> ```
+> @import "tailwindcss";
+> @import "tw-animate-css";
+> ```
+
+## 82. Check If Project Uses Tailwind 4
+
+> Thought we are using Tailwind 4
+
+## 83. Amend Commit With Remaining Changes
+
+> Please commit with amend everything. Next we'll upgrade quickly. To fix shadcn and Radix and Tailwind parity

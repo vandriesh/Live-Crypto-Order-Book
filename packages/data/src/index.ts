@@ -10,13 +10,6 @@ export function isSupportedMarket(
   return supportedMarkets.includes(market as SupportedMarket);
 }
 
-export function formatMarketLabel(market: string) {
-  const quote = market.slice(-4);
-  const base = market.slice(0, -4);
-
-  return `${base}/${quote}`;
-}
-
 export type {
   MarketConnectionStatus,
   MarketDataChannel,

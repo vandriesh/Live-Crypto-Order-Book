@@ -2,53 +2,16 @@ import {
   BuySellRatioBar,
   OrderBookLevelRow,
   OrderBookMidPriceRow,
+  OrderBookVisibilityToggle,
   TickSizeSelect,
 } from "@neet/ui-domain-kit";
-
-import {
-  cn,
-} from "@neet/ui-kit";
+import { cn } from "@neet/ui-kit";
 
 import {
   OrderBookDisplayProvider,
   useOrderBookDisplay,
 } from "./order-book-display-provider";
 import { OrderBookDisplayPopup } from "./order-book-display-popup";
-
-function IconToggle({
-  active,
-  tone,
-}: {
-  active?: boolean;
-  tone: "ask" | "bid" | "both";
-}) {
-  return (
-    <button
-      type="button"
-      className={cn(
-        "flex h-6 w-7 items-center justify-center rounded-md border border-transparent transition",
-        active
-          ? "bg-shell-surface-elevated"
-          : "text-shell-text-faint hover:bg-shell-surface-elevated/80",
-      )}
-    >
-      <span className="flex gap-0.5">
-        <span
-          className={cn(
-            "h-2.5 w-1 rounded-sm",
-            tone === "ask" ? "bg-book-ask" : "bg-book-bid",
-          )}
-        />
-        <span
-          className={cn(
-            "h-3.5 w-1 rounded-sm",
-            tone === "both" ? "bg-shell-text-faint" : tone === "ask" ? "bg-book-ask/45" : "bg-book-bid/45",
-          )}
-        />
-      </span>
-    </button>
-  );
-}
 
 export function OrderBookContainer() {
   return (
@@ -71,6 +34,9 @@ function OrderBookContainerContent() {
     sellRatio,
     showRatio,
   } = view;
+  const showAsks = state.visibleOperation === "both" || state.visibleOperation === "ask";
+  const showBids = state.visibleOperation === "both" || state.visibleOperation === "bid";
+  const isBothVisible = state.visibleOperation === "both";
 
   return (
     <div className="flex h-full flex-col bg-shell-surface">
@@ -83,11 +49,10 @@ function OrderBookContainerContent() {
       </div>
 
       <div className="flex items-center justify-between border-b border-shell-border px-4 py-2">
-        <div className="flex items-center gap-1">
-          <IconToggle tone="ask" />
-          <IconToggle tone="both" active />
-          <IconToggle tone="bid" />
-        </div>
+        <OrderBookVisibilityToggle
+          value={state.visibleOperation}
+          onValueChange={actions.setVisibleOperation}
+        />
 
         <TickSizeSelect
           options={tickSizeOptions}
@@ -97,24 +62,35 @@ function OrderBookContainerContent() {
       </div>
 
       <div className="flex-1 p-4">
-        <section className="overflow-hidden rounded-[20px] border border-shell-border bg-shell-surface-alt">
+        <section className="flex h-full flex-col overflow-hidden rounded-[20px] border border-shell-border bg-shell-surface-alt">
           <div className="grid grid-cols-[1fr_1fr_1fr] px-4 py-3 text-xs text-shell-text-faint">
             <span>Price ({quoteAsset})</span>
             <span className="text-right">Amount ({baseAsset})</span>
             <span className="text-right">Total</span>
           </div>
 
-          <div className="px-2 pb-3">
-            {asks.map((row) => (
-                <OrderBookLevelRow
-                  key={`ask-${row.price}-${row.total}`}
-                  amount={row.amount}
-                  depthRatio={row.depthRatio}
-                  variant="ask"
-                  price={row.price}
-                  total={row.total}
-                />
-              ))}
+          <div className="flex min-h-0 flex-1 flex-col px-2 pb-3">
+            {showAsks ? (
+              <div
+                className={cn(
+                  "min-h-0 overflow-hidden",
+                  isBothVisible ? "flex-1" : "flex-[2]",
+                )}
+              >
+                <div className="flex min-h-full flex-col justify-end">
+                  {asks.map((row) => (
+                    <OrderBookLevelRow
+                      key={`ask-${row.price}-${row.total}`}
+                      amount={row.amount}
+                      depthRatio={row.depthRatio}
+                      variant="ask"
+                      price={row.price}
+                      total={row.total}
+                    />
+                  ))}
+                </div>
+              </div>
+            ) : null}
 
             <OrderBookMidPriceRow
               direction={midPriceRow.direction}
@@ -122,16 +98,27 @@ function OrderBookContainerContent() {
               referencePrice={midPriceRow.referencePrice}
             />
 
-            {bids.map((row) => (
-              <OrderBookLevelRow
-                key={`bid-${row.price}-${row.total}`}
-                amount={row.amount}
-                depthRatio={row.depthRatio}
-                variant="bid"
-                price={row.price}
-                total={row.total}
-              />
-            ))}
+            {showBids ? (
+              <div
+                className={cn(
+                  "min-h-0 overflow-hidden",
+                  isBothVisible ? "flex-1" : "flex-[2]",
+                )}
+              >
+                <div className="flex flex-col">
+                  {bids.map((row) => (
+                    <OrderBookLevelRow
+                      key={`bid-${row.price}-${row.total}`}
+                      amount={row.amount}
+                      depthRatio={row.depthRatio}
+                      variant="bid"
+                      price={row.price}
+                      total={row.total}
+                    />
+                  ))}
+                </div>
+              </div>
+            ) : null}
           </div>
 
           {showRatio ? (
