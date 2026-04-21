@@ -8,23 +8,30 @@ const Tooltip = TooltipPrimitive.Root;
 const TooltipTrigger = TooltipPrimitive.Trigger;
 
 function TooltipContent({
+  arrowClassName,
   className,
   sideOffset = 8,
   ...props
-}: React.ComponentProps<typeof TooltipPrimitive.Content>) {
+}: React.ComponentProps<typeof TooltipPrimitive.Content> & {
+  arrowClassName?: string;
+}) {
   return (
     <TooltipPrimitive.Portal>
       <TooltipPrimitive.Content
         sideOffset={sideOffset}
         className={cn(
-          "z-50 overflow-hidden rounded-[18px] bg-[#5F6B80] px-5 py-3 text-[15px] font-medium text-white shadow-[0_18px_60px_-28px_rgba(0,0,0,0.95)] outline-none",
+          "z-50 overflow-visible rounded-[18px] bg-[#5F6B80] px-5 py-3 text-[15px] font-medium text-white shadow-[0_18px_60px_-28px_rgba(0,0,0,0.95)] outline-none",
           "data-[state=closed]:fade-out-0 data-[state=closed]:zoom-out-95 data-[state=open]:animate-in data-[state=open]:fade-in-0 data-[state=open]:zoom-in-95",
           className,
         )}
         {...props}
       >
         {props.children}
-        <TooltipPrimitive.Arrow className="fill-[#5F6B80]" width={16} height={8} />
+        <TooltipPrimitive.Arrow
+          className={cn("fill-[#5F6B80]", arrowClassName)}
+          width={16}
+          height={8}
+        />
       </TooltipPrimitive.Content>
     </TooltipPrimitive.Portal>
   );

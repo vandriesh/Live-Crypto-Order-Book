@@ -30,7 +30,32 @@ export function formatPrice(value: number) {
   }).format(value);
 }
 
+export function formatAveragePrice(value: number) {
+  return new Intl.NumberFormat("en-US", {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 5,
+  }).format(value);
+}
+
 export function formatQuantity(value: number) {
+  return new Intl.NumberFormat("en-US", {
+    minimumFractionDigits: 5,
+    maximumFractionDigits: 5,
+  }).format(value);
+}
+
+export function formatSumAmount(value: number) {
+  return new Intl.NumberFormat("en-US", {
+    minimumFractionDigits: 4,
+    maximumFractionDigits: 4,
+  }).format(value);
+}
+
+export function formatTotal(value: number, humanReadable: boolean) {
+  if (humanReadable) {
+    return formatCompactNumber(value);
+  }
+
   return new Intl.NumberFormat("en-US", {
     minimumFractionDigits: 5,
     maximumFractionDigits: 5,
@@ -77,14 +102,12 @@ export function getTickFractionDigits(tickSize: number | string) {
 
 export function formatPriceForDisplay(
   value: number,
-  roundingEnabled: boolean,
   tickSize: number | string,
 ) {
-  const nextValue = roundingEnabled ? roundToTick(value, tickSize) : value;
   const fractionDigits = getTickFractionDigits(tickSize);
 
   return new Intl.NumberFormat("en-US", {
     minimumFractionDigits: fractionDigits,
     maximumFractionDigits: Math.max(fractionDigits, 3),
-  }).format(nextValue);
+  }).format(value);
 }

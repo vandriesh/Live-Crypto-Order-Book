@@ -4,12 +4,14 @@ Purpose: hold domain-aware UI components that understand NEET trading concepts w
 
 Current status:
 - contains `BuySellRatioBar`
+- contains `OrderBookAvgSumTooltip`
 - contains `SymbolLogo`
 - contains `OrderBookLevelRow`
 - contains `OrderBookMidPriceRow`
 - contains `TickSizeSelect`
 - maps supported demo markets to local crypto SVG assets
 - provides shared buy/sell ratio presentation for the order book
+- provides shared avg/sum tooltip presentation for hovered order-book rows
 - provides shared ask/bid row presentation for the order book
 - provides shared mid-price row presentation for the order book
 - provides shared tick-size selection UI for the order book

@@ -574,3 +574,65 @@ This file records the user prompts from the beginning of this conversation in ch
 ## 90. Clarify Previous Data Source Was Mock
 
 > Till now it was not real data but mock generated data through web sockets. ?
+
+## 91. Inspect Binance Popup State From Screenshots
+
+> check the binance state
+
+## 92. Make Rounding Control Total Formatting
+
+> unformated it shows like 5 decimal digits - check if it's row values coma to separate  thousands
+
+> So I'd say to have a total formatter that receives original value and human boolean. That will transform into a human-readable, human-friendly format if the rounding is on.
+
+## 93. Keep Actual Total Independent From Decimal Formatting
+
+> The actual total value should not depend on its always-formative two decimal digits.
+
+## 94. Audit Order Book Feature Checklist
+
+> ok, let's go through our plan list implementation and check what we've done and what we've not. I remind you this was the original feature request.
+
+```
+■ Add support for rounding
+■ Add decimals option (play with the binance order book to understand the
+logic here, it needs to behave in a similar fashion)
+■ Show/hide Buy/Sell ratio
+■ Support both Cumulative and Amount Depth
+■ Highlight the elements closer to the center on hover.
+■ (Bonus) Animations are a nice to have
+```
+
+## 95. Clarify Meaning Of Display Avg.&Sum
+
+> I'll ask and this, now what's is "Display Avg.&Sum" ? how should order book "react"?
+
+## 96. Clarify Hover Highlight Behavior Around Center
+
+> I found what the highlight rose means. From the center , etc;
+> when mouse is hover sell region - starting from the bottom will mouse we change bg to dark -> lighter ("hover effect") - if current hovered element is > than the row's idnex
+> e.g. if I hover over element nr 10, the below elements get "hover" effect as well -
+> current element get extra "bonus" and render a even ligher top - border;
+>
+> same effect for buy area but inversed e.g. hover over element 4, al the elements /rows with smaller index - get hvoer effect, current/actual hover row - get extra bottom border
+
+## 97. Clarify Binance Depth Update Frequency
+
+> also - the data I receive changes to quick - does Binance provide? How often do I need updates?
+
+## 98. Smooth Order Book Visual Update Cadence
+
+> I think we should implement a "not all updates" - Travel a smoother UI and more human-friendly render of the data.
+> It will look like it updates once in a second. To recreate Binance behaviour .
+
+## 99. Tune Avg Sum Tooltip Arrow And Opacity
+
+> mised the arrow, descrese opacity by .10
+
+## 100. Fix Avg Sum Tooltip Column Widths
+
+> use fixed width labels some space and max "wide" numbers : 22,222,22222
+
+## 101. Commit Accumulated Changes Atomically
+
+> Commit accumulated changes atomically/thematically.

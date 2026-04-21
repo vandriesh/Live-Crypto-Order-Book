@@ -11,6 +11,20 @@ Rules for this document:
 ## Feature: `@neet/data`
 
 ### Exact PDF requirements
+- Frontend architecture is part of the evaluation, including:
+  - where data is requested
+  - how hooks are used
+  - how memoization is used
+
+### Architecture rationale
+- `@neet/data` owns the provider-agnostic market-data contract used by the app.
+- This is the stable, user-facing shape that provider implementations should output.
+- `@neet/order-book` should consume exported contracts from this package.
+- Do not create a detached shared `types.ts` dump outside the feature boundary.
+
+## Feature: `@neet/binance-connection-manager`
+
+### Exact PDF requirements
 - Get order book data from Binance using their open API.
 - Recommended websocket endpoint:
   - `wss://stream.binance.com:9443/ws/${symbol}@depth${levels}${speedSuffix}`
@@ -18,16 +32,11 @@ Rules for this document:
 - Any 3 markets may be chosen.
 - Websocket subscriptions must be properly opened and closed when the market changes.
 - The order book updates several times per second, so the implementation must use as few resources as possible.
-- Frontend architecture is part of the evaluation, including:
-  - where data is requested
-  - how hooks are used
-  - how memoization is used
 
 ### Architecture rationale
-- `@neet/data` owns stream acquisition, subscription lifecycle, normalization, and source-of-truth contracts.
-- Contracts and interfaces live here because the data is born here.
-- `@neet/order-book` should consume exported contracts from this package.
-- Do not create a detached shared `types.ts` layer for these contracts.
+- `@neet/binance-connection-manager` is the Binance-specific runtime implementation.
+- It owns websocket lifecycle, local order-book sync, route-market to Binance-symbol translation, and provider/hook delivery.
+- Raw Binance payloads and provider-specific connection details belong here, not in `@neet/data`.
 
 ## Feature: `@neet/order-book`
 
@@ -83,13 +92,13 @@ Rules for this document:
       <td>Scaffold package boundaries and aliases</td>
       <td>Architecture evaluation, package split foundation</td>
       <td><code>[x]</code></td>
-      <td></td>
+      <td><code>1e67fe1</code></td>
     </tr>
     <tr>
       <td>Performance pass for frequent updates</td>
       <td>Efficient updates, low resource usage, hooks/memoization quality</td>
-      <td><code>[ ]</code></td>
-      <td></td>
+      <td><code>[~]</code></td>
+      <td><code>3be1856</code></td>
     </tr>
     <tr>
       <td>README and submission requirements</td>
@@ -98,25 +107,28 @@ Rules for this document:
       <td></td>
     </tr>
     <tr>
-      <td colspan="4"><strong>@neet/data</strong> - data acquisition, contracts, and subscription lifecycle</td>
+      <td colspan="4"><strong>@neet/data</strong> - normalized contracts and provider-agnostic market-data shapes</td>
     </tr>
     <tr>
-      <td>Define Binance stream contract and normalization</td>
-      <td>Binance data source, source-owned contracts, normalization boundary</td>
-      <td><code>[ ]</code></td>
-      <td></td>
+      <td>Define normalized market-data contract</td>
+      <td>Source-owned contracts, normalization boundary, stable consumer-facing shape</td>
+      <td><code>[x]</code></td>
+      <td><code>87a208a</code></td>
+    </tr>
+    <tr>
+      <td colspan="4"><strong>@neet/binance-connection-manager</strong> - Binance runtime integration, provider, and subscription lifecycle</td>
     </tr>
     <tr>
       <td>Implement Binance websocket stream connection</td>
       <td>Get order book data from Binance open API using the recommended websocket endpoint</td>
-      <td><code>[ ]</code></td>
-      <td></td>
+      <td><code>[x]</code></td>
+      <td><code>3be1856</code></td>
     </tr>
     <tr>
       <td>Add market switching and subscription lifecycle</td>
       <td>3 markets, proper open/close of subscriptions</td>
-      <td><code>[ ]</code></td>
-      <td></td>
+      <td><code>[x]</code></td>
+      <td><code>0fad577</code></td>
     </tr>
     <tr>
       <td colspan="4"><strong>@neet/order-book</strong> - smart container, controls, and ladder rendering</td>
@@ -124,37 +136,37 @@ Rules for this document:
     <tr>
       <td>Build the Binance-inspired order book shell</td>
       <td>Fully featured order book component, React implementation, Binance-like design/functionality baseline</td>
-      <td><code>[ ]</code></td>
-      <td></td>
+      <td><code>[x]</code></td>
+      <td><code>8e20b57</code></td>
     </tr>
     <tr>
       <td>Render initial bid/ask ladder</td>
       <td>Show bids and asks as data arrives</td>
-      <td><code>[ ]</code></td>
-      <td></td>
+      <td><code>[x]</code></td>
+      <td><code>3be1856</code></td>
     </tr>
     <tr>
       <td>Add market switching UI</td>
       <td>Allow the user to change the selected market for 3 chosen markets</td>
-      <td><code>[ ]</code></td>
-      <td></td>
+      <td><code>[x]</code></td>
+      <td><code>0fad577</code></td>
     </tr>
     <tr>
       <td>Add rounding and decimals controls</td>
       <td>Rounding, Binance-like decimals option</td>
-      <td><code>[ ]</code></td>
-      <td></td>
+      <td><code>[x]</code></td>
+      <td><code>9240ee3</code></td>
     </tr>
     <tr>
       <td>Add ratio toggle and depth mode toggle</td>
       <td>Show/hide Buy/Sell ratio, cumulative depth, amount depth</td>
-      <td><code>[ ]</code></td>
-      <td></td>
+      <td><code>[x]</code></td>
+      <td><code>9240ee3</code></td>
     </tr>
     <tr>
       <td>Add hover-center highlighting</td>
       <td>Highlight elements closer to the center on hover</td>
-      <td><code>[ ]</code></td>
+      <td><code>[x]</code></td>
       <td></td>
     </tr>
     <tr>
@@ -172,9 +184,9 @@ Status legend:
 - `[x]` done
 
 ## Type and contract ownership rule
-- Raw Binance message shapes belong in `@neet/data`.
-- Normalized order book shapes belong in `@neet/data`.
-- `@neet/order-book` imports those exported contracts.
+- Provider-agnostic normalized market-data contracts belong in `@neet/data`.
+- Raw Binance message shapes and websocket/runtime concerns belong in `@neet/binance-connection-manager`.
+- `@neet/order-book` consumes prepared display data from the provider layer and normalized contracts from the data layer.
 - Shared consumption happens by export/import, not by redefining interfaces elsewhere.
 
 ## Acceptance check
