@@ -1,5 +1,4 @@
 import { useMarketData } from "@neet/binance-connection-manager";
-import type { OrderBookSnapshot } from "@neet/data";
 import {
   ceilToTick,
   floorToTick,
@@ -19,12 +18,10 @@ import {
   useMemo,
   useReducer,
   useRef,
-  useState,
 } from "react";
 
 const tickSizeOptions = ["0.01", "0.1", "1", "10", "50", "100", "1000"] as const;
 const visibleOrderBookLevels = 10;
-const visualUpdateIntervalMs = 1000;
 
 type TickSizeOption = (typeof tickSizeOptions)[number];
 type DepthMode = "amount" | "cumulative";
@@ -291,42 +288,14 @@ export function OrderBookDisplayProvider({
   children: ReactNode;
 }) {
   const marketData = useMarketData();
-  const { market, orderBookSnapshot: liveSnapshot } = marketData;
+  const { market, orderBookSnapshot: snapshot } = marketData;
   const previousMidPriceByMarketRef = useRef(
     new Map<string, { direction: "down" | "up"; price: number }>(),
   );
-  const latestSnapshotRef = useRef(liveSnapshot);
   const [state, dispatch] = useReducer(
     orderBookDisplayReducer,
     initialDisplayState,
   );
-  const [snapshot, setSnapshot] = useState<OrderBookSnapshot>(liveSnapshot);
-
-  useEffect(() => {
-    latestSnapshotRef.current = liveSnapshot;
-  }, [liveSnapshot]);
-
-  useEffect(() => {
-    if (liveSnapshot.market !== snapshot.market) {
-      setSnapshot(liveSnapshot);
-    }
-  }, [liveSnapshot, snapshot.market]);
-
-  useEffect(() => {
-    const intervalId = window.setInterval(() => {
-      setSnapshot((currentSnapshot) => {
-        const nextSnapshot = latestSnapshotRef.current;
-
-        return currentSnapshot.lastUpdateId === nextSnapshot.lastUpdateId
-          ? currentSnapshot
-          : nextSnapshot;
-      });
-    }, visualUpdateIntervalMs);
-
-    return () => {
-      window.clearInterval(intervalId);
-    };
-  }, []);
 
   const previousMidPriceState = previousMidPriceByMarketRef.current.get(market);
   const persistedMidPriceDirection =

@@ -1,3 +1,4 @@
+import { DataProvider } from "@neet/binance-connection-manager";
 import {
     BuySellRatioBar,
     OrderBookAvgSumTooltip,
@@ -8,16 +9,27 @@ import {
 } from "@neet/ui-domain-kit";
 import {cn} from "@neet/ui-kit";
 import {useState} from "react";
+import type { SupportedMarket } from "@neet/data";
 
 import {OrderBookDisplayProvider, useOrderBookDisplay,} from "./order-book-display-provider";
 import {OrderBookDisplayPopup} from "./order-book-display-popup";
 import {getAskHoverState, getBidHoverState} from "./utils";
 
-export function OrderBookContainer() {
+type OrderBookContainerProps = {
+    market: SupportedMarket;
+    marketType: string;
+};
+
+export function OrderBookContainer({
+    market,
+    marketType,
+}: OrderBookContainerProps) {
     return (
-        <OrderBookDisplayProvider>
-            <OrderBookContainerContent/>
-        </OrderBookDisplayProvider>
+        <DataProvider market={market} marketType={marketType}>
+            <OrderBookDisplayProvider>
+                <OrderBookContainerContent/>
+            </OrderBookDisplayProvider>
+        </DataProvider>
     );
 }
 
