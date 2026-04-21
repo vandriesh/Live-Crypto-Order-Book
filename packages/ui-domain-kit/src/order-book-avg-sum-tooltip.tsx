@@ -27,7 +27,7 @@ export function OrderBookAvgSumTooltip({
   sumTotal,
 }: OrderBookAvgSumTooltipProps) {
   return (
-    <TooltipProvider delayDuration={100}>
+    <TooltipProvider delayDuration={100} disableHoverableContent>
       <Tooltip open={open}>
         <TooltipTrigger asChild>
           <div>{children}</div>
