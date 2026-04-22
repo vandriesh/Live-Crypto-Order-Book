@@ -1,74 +1,95 @@
-# React Router Netlify Template
+# NEET Crypto Order Book
 
-A modern, production-ready template for building full-stack React applications using React Router,
-deployed to Netlify.
+Binance-inspired crypto order book built with React Router, React, TypeScript, and Tailwind CSS.
 
-## Features
+Live deployment:
+- [https://neet-crypto.netlify.app](https://neet-crypto.netlify.app)
 
-- 🚀 Server-side rendering
-- ⚡️ Hot Module Replacement (HMR)
-- 📦 Asset bundling and optimization
-- 🔄 Data loading and mutations
-- 🔒 TypeScript by default
-- 🎉 TailwindCSS for styling
-- 📖 [React Router docs](https://reactrouter.com/)
-- 💻 Configured for deployment to Netlify
+## Build And Run
 
-## Getting Started
-
-### Installation
-
-Install the dependencies:
+### Install
 
 ```bash
 npm install
 ```
 
-### Development
-
-Start the development server with HMR:
+### Run locally
 
 ```bash
 npm run dev
 ```
 
-Your application will be available at `http://localhost:5173`.
+Frontend URL:
+- `http://localhost:5173`
 
-## Building for Production
+### Typecheck
 
-Create a production build:
+```bash
+npm run typecheck
+```
+
+### Production build
 
 ```bash
 npm run build
 ```
 
-## Previewing a Production build
+## Assumptions
 
-To preview a production build locally, use the [Netlify CLI](https://cli.netlify.com):
+- The app focuses on 3 markets: `BTCUSDC`, `ETHUSDC`, and `SOLUSDC`.
+- The order book should feel close to Binance in layout and interaction, but not every internal Binance behavior is publicly documented, so some UI details were inferred from observed behavior.
+- A smoother visual cadence is acceptable for readability even when the underlying Binance feed updates more frequently.
+- The localhost frontend port is the default Vite/React Router dev port: `5173`.
 
-```bash
-npx netlify-cli serve
-```
+## Technology Choices
 
-```bash
-npm run build
-```
+- `react` and `react-router`
+  - Used for the UI, routing, and application structure.
+- `typescript`
+  - Used for safer refactors and clearer boundaries between data, feature, and UI layers.
+- `tailwindcss`
+  - Used for fast styling iteration and Binance-like UI tuning.
+- `radix-ui`
+  - Used for accessible primitives such as popovers, tooltips, select, checkbox, radio group, and switch.
+- `class-variance-authority`
+  - Used for concise variant-based styling in reusable UI/domain components.
+- `Netlify`
+  - Used for deployment and sharing the hosted solution.
 
-## Deployment
+## Architecture Notes
 
-This template is preconfigured for deployment to Netlify.
+The codebase is split into small packages with explicit responsibilities:
 
-Follow <https://docs.netlify.com/welcome/add-new-site/> to add this project as a site
-in your Netlify account.
+- `@neet/data`
+  - provider-agnostic market and contract types
+- `@neet/binance-connection-manager`
+  - Binance data access and subscription lifecycle
+- `@neet/order-book`
+  - order-book behavior, display settings, and feature orchestration
+- `@neet/ui-domain-kit`
+  - domain-specific presentational components
+- `@neet/ui-kit`
+  - lower-level reusable UI primitives
+- `@neet/utils`
+  - shared formatting helpers
 
-## Styling
+## Bonus Challenges Attempted
 
-This template comes with [Tailwind CSS](https://tailwindcss.com/) already configured for a simple default starting experience. You can use whatever CSS framework you prefer.
+- Netlify deployment
+- Binance-like order book display popup
+- Buy/Sell ratio widget
+- Cumulative vs Amount depth visualization
+- Hover-driven depth highlight behavior
+- Avg.&Sum hover tooltip
+- Order-book interaction and render optimization work
 
-## See also
+## Submission Checklist
 
-[Guide: how to deploy a React Router 7 site to Netlify](https://developers.netlify.com/guides/how-to-deploy-a-react-router-7-site-to-netlify/)
+- Git repository: this project is packaged as a Git repository.
+- README instructions: included here.
+- Localhost frontend port: `5173`.
+- Deployment URL: [https://neet-crypto.netlify.app](https://neet-crypto.netlify.app)
 
----
-
-Built with ❤️ using React Router.
+GitHub upload and collaborator access:
+- Upload the repository to GitHub
+- Add `yeet-platform-devs` as viewer or contributor
