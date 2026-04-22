@@ -636,3 +636,33 @@ logic here, it needs to behave in a similar fashion)
 ## 101. Commit Accumulated Changes Atomically
 
 > Commit accumulated changes atomically/thematically.
+
+## Animation Feature Prompt Trail
+
+## 102. Detect Animation Behavior From Binance Screenshots
+
+> The PDF instructions with the task challenge contained an extra task to add animation.
+> These are two screenshots of animation-enabled behavior. Could you detect or assume what this animation does?
+
+## 103. Detect Why Highlighted Rows Are Animated
+
+> Share three screenshots, three frames of animation. Could you detect the reason those rows are highlighted?
+
+## 104. Confirm Against Binance Docs Or API
+
+> can you confirm:
+> also you can search binance docs/api to look for highlighning/animation mecanism - how it works
+
+## 105. Verify Animated Rows Row By Row
+
+> Could you verify row by row in all three frames and create a table and mark which one is animated so we can look both and compare the values?
+
+## 106. Implement Animation Feature
+
+> Sounds logical. Please implement
+
+## 107. Extract Animation Logic Into A Hook
+
+> I think this kind of animation could be extracted as an external hook, like a useAnimationHook.
+>
+> So any other logic can also be exported into a dedicated hook file.
