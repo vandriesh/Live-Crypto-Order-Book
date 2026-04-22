@@ -105,6 +105,7 @@ const orderBookLevelDepthVariants = cva(
 
 type OrderBookLevelRowProps = {
   amount: string;
+  animated?: boolean;
   className?: string;
   depthRatio: number;
   hoverState?: "active" | "idle";
@@ -130,6 +131,7 @@ function getDepthWidthPercent(depthRatio: number) {
 
 export function OrderBookLevelRow({
   amount,
+  animated = false,
   className,
   depthRatio,
   hoverState = "idle",
@@ -145,6 +147,13 @@ export function OrderBookLevelRow({
       onMouseEnter={onMouseEnter}
       onMouseLeave={onMouseLeave}
     >
+      <div
+        className={cn(
+          "pointer-events-none absolute inset-0 rounded-[8px] transition-opacity duration-700",
+          tone === "ask" ? "bg-red-500/30" : "bg-emerald-500/30",
+          animated ? "opacity-100" : "opacity-0",
+        )}
+      />
       <div
         className={orderBookLevelDepthVariants({ hoverState, tone })}
         style={{ width: getDepthWidthPercent(depthRatio) }}

@@ -4,6 +4,7 @@ import { memo } from "react";
 import type { DisplayRow } from "./utils";
 
 export type OrderBookSideRowProps = {
+    animated: boolean;
     baseAsset: string;
     displayAverage: boolean;
     hoveredIndex: number | null;
@@ -15,6 +16,7 @@ export type OrderBookSideRowProps = {
 };
 
 export const OrderBookSideRow = memo(function OrderBookSideRow({
+    animated,
     baseAsset,
     displayAverage,
     hoveredIndex,
@@ -28,6 +30,7 @@ export const OrderBookSideRow = memo(function OrderBookSideRow({
     const rowContent = (
         <OrderBookLevelRow
             amount={row.amount}
+            animated={animated}
             depthRatio={row.depthRatio}
             hoverState={hoverState}
             onMouseEnter={() => onHoverStart(index)}
@@ -60,6 +63,7 @@ function areOrderBookSideRowPropsEqual(
     next: OrderBookSideRowProps,
 ) {
     return (
+        previous.animated === next.animated &&
         previous.baseAsset === next.baseAsset &&
         previous.displayAverage === next.displayAverage &&
         previous.index === next.index &&

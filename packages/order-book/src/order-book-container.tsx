@@ -96,6 +96,7 @@ export function OrderBookContainerContent() {
                             >
                                 <div className="flex min-h-full flex-col justify-end">
                                     <OrderBookSideLevels
+                                        animationsEnabled={state.animationsEnabled}
                                         baseAsset={baseAsset}
                                         displayAverage={state.displayAverage}
                                         quoteAsset={quoteAsset}
@@ -121,6 +122,7 @@ export function OrderBookContainerContent() {
                             >
                                 <div className="flex flex-col">
                                     <OrderBookSideLevels
+                                        animationsEnabled={state.animationsEnabled}
                                         baseAsset={baseAsset}
                                         displayAverage={state.displayAverage}
                                         quoteAsset={quoteAsset}
