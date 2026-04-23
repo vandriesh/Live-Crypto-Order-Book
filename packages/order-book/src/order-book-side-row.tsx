@@ -1,5 +1,5 @@
 import { OrderBookAvgSumTooltip, OrderBookLevelRow } from "@neet/ui-domain-kit";
-import { memo } from "react";
+import { memo, useCallback } from "react";
 
 import type { DisplayRow } from "./utils";
 
@@ -27,13 +27,17 @@ export const OrderBookSideRow = memo(function OrderBookSideRow({
     variant,
 }: OrderBookSideRowProps) {
     const hoverState = hoveredIndex === index ? "active" : "idle";
+    const handleMouseEnter = useCallback(
+        () => onHoverStart(index),
+        [index, onHoverStart],
+    );
     const rowContent = (
         <OrderBookLevelRow
             amount={row.amount}
             animated={animated}
             depthRatio={row.depthRatio}
             hoverState={hoverState}
-            onMouseEnter={() => onHoverStart(index)}
+            onMouseEnter={handleMouseEnter}
             tone={variant}
             price={row.price}
             total={row.total}
@@ -69,9 +73,23 @@ function areOrderBookSideRowPropsEqual(
         previous.index === next.index &&
         previous.onHoverStart === next.onHoverStart &&
         previous.quoteAsset === next.quoteAsset &&
-        previous.row === next.row &&
         previous.variant === next.variant &&
-        isActive(previous) === isActive(next)
+        isActive(previous) === isActive(next) &&
+        isSameDisplayRow(previous.row, next.row)
+    );
+}
+
+function isSameDisplayRow(a: DisplayRow, b: DisplayRow) {
+    return (
+        a.price === b.price &&
+        a.amount === b.amount &&
+        a.total === b.total &&
+        a.depthRatio === b.depthRatio &&
+        a.isPlaceholder === b.isPlaceholder &&
+        a.operation === b.operation &&
+        a.summary?.averagePrice === b.summary?.averagePrice &&
+        a.summary?.sumAmount === b.summary?.sumAmount &&
+        a.summary?.sumTotal === b.summary?.sumTotal
     );
 }
 

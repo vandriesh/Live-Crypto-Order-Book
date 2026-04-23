@@ -1,4 +1,5 @@
 import { cva } from "class-variance-authority";
+import { memo } from "react";
 
 import { cn } from "@neet/ui-kit";
 
@@ -93,7 +94,7 @@ type OrderBookLevelRowProps = {
   total: string;
 };
 
-export function OrderBookLevelRow({
+export const OrderBookLevelRow = memo(function OrderBookLevelRow({
   amount,
   animated = false,
   className,
@@ -124,4 +125,4 @@ export function OrderBookLevelRow({
       <span className={orderBookLevelValueVariants({ hoverState })}>{total}</span>
     </div>
   );
-}
+});

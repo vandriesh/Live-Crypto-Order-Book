@@ -16,61 +16,60 @@ function toPositiveTickValue(tickSize: number | string) {
   return tickValue;
 }
 
-export function formatCompactNumber(value: number) {
-  return new Intl.NumberFormat("en-US", {
-    notation: "compact",
-    maximumFractionDigits: 2,
-  }).format(value);
-}
+const compactNumberFormat = new Intl.NumberFormat("en-US", {
+  notation: "compact",
+  maximumFractionDigits: 2,
+});
+
+const priceFormat = new Intl.NumberFormat("en-US", {
+  minimumFractionDigits: 2,
+  maximumFractionDigits: 3,
+});
+
+const averagePriceFormat = new Intl.NumberFormat("en-US", {
+  minimumFractionDigits: 2,
+  maximumFractionDigits: 5,
+});
+
+const quantityFormat = new Intl.NumberFormat("en-US", {
+  minimumFractionDigits: 5,
+  maximumFractionDigits: 5,
+});
+
+const sumAmountFormat = new Intl.NumberFormat("en-US", {
+  minimumFractionDigits: 4,
+  maximumFractionDigits: 4,
+});
+
+const totalPreciseFormat = new Intl.NumberFormat("en-US", {
+  minimumFractionDigits: 5,
+  maximumFractionDigits: 5,
+});
 
 export function formatPrice(value: number) {
-  return new Intl.NumberFormat("en-US", {
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 3,
-  }).format(value);
+  return priceFormat.format(value);
 }
 
 export function formatAveragePrice(value: number) {
-  return new Intl.NumberFormat("en-US", {
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 5,
-  }).format(value);
+  return averagePriceFormat.format(value);
 }
 
 export function formatQuantity(value: number) {
-  return new Intl.NumberFormat("en-US", {
-    minimumFractionDigits: 5,
-    maximumFractionDigits: 5,
-  }).format(value);
+  return quantityFormat.format(value);
 }
 
 export function formatSumAmount(value: number) {
-  return new Intl.NumberFormat("en-US", {
-    minimumFractionDigits: 4,
-    maximumFractionDigits: 4,
-  }).format(value);
+  return sumAmountFormat.format(value);
 }
 
 export function formatTotal(value: number, humanReadable: boolean) {
   if (humanReadable) {
-    return formatCompactNumber(value);
+    return compactNumberFormat.format(value);
   }
 
-  return new Intl.NumberFormat("en-US", {
-    minimumFractionDigits: 5,
-    maximumFractionDigits: 5,
-  }).format(value);
+  return totalPreciseFormat.format(value);
 }
 
-export function roundToTick(value: number, tickSize: number | string) {
-  const tickValue = toPositiveTickValue(tickSize);
-
-  if (tickValue == null) {
-    return value;
-  }
-
-  return Math.round(value / tickValue) * tickValue;
-}
 
 export function floorToTick(value: number, tickSize: number | string) {
   const tickValue = toPositiveTickValue(tickSize);
@@ -100,14 +99,22 @@ export function getTickFractionDigits(tickSize: number | string) {
   return decimals.length;
 }
 
+const priceForDisplayFormatCache = new Map<number, Intl.NumberFormat>();
+
 export function formatPriceForDisplay(
   value: number,
   tickSize: number | string,
 ) {
   const fractionDigits = getTickFractionDigits(tickSize);
+  let formatter = priceForDisplayFormatCache.get(fractionDigits);
 
-  return new Intl.NumberFormat("en-US", {
-    minimumFractionDigits: fractionDigits,
-    maximumFractionDigits: Math.max(fractionDigits, 3),
-  }).format(value);
+  if (!formatter) {
+    formatter = new Intl.NumberFormat("en-US", {
+      minimumFractionDigits: fractionDigits,
+      maximumFractionDigits: Math.max(fractionDigits, 3),
+    });
+    priceForDisplayFormatCache.set(fractionDigits, formatter);
+  }
+
+  return formatter.format(value);
 }

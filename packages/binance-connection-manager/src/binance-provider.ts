@@ -19,7 +19,10 @@ type OrderBookSubscription = {
 type ActiveOrderBookStream = {
   stream: BinanceOrderBookStream;
   subscriptionCount: number;
+  pendingStopTimeout: ReturnType<typeof setTimeout> | null;
 };
+
+const STREAM_IDLE_GRACE_MS = 5000;
 
 type SubscribeToOrderBookArgs = {
   market: SupportedMarket;
@@ -57,7 +60,10 @@ export class BinanceProvider implements MarketDataProvider {
   }
 
   disconnect() {
-    this.activeOrderBookStreams.forEach(({ stream }) => {
+    this.activeOrderBookStreams.forEach(({ stream, pendingStopTimeout }) => {
+      if (pendingStopTimeout) {
+        clearTimeout(pendingStopTimeout);
+      }
       stream.stop();
     });
     this.activeOrderBookStreams.clear();
@@ -82,6 +88,10 @@ export class BinanceProvider implements MarketDataProvider {
 
     if (existingStream) {
       existingStream.subscriptionCount += 1;
+      if (existingStream.pendingStopTimeout) {
+        clearTimeout(existingStream.pendingStopTimeout);
+        existingStream.pendingStopTimeout = null;
+      }
     } else {
       const stream = new BinanceOrderBookStream(
         market,
@@ -97,6 +107,7 @@ export class BinanceProvider implements MarketDataProvider {
       this.activeOrderBookStreams.set(symbol, {
         stream,
         subscriptionCount: 1,
+        pendingStopTimeout: null,
       });
       stream.start();
     }
@@ -124,14 +135,22 @@ export class BinanceProvider implements MarketDataProvider {
     if (activeStream) {
       activeStream.subscriptionCount -= 1;
 
-      if (activeStream.subscriptionCount <= 0) {
-        activeStream.stream.stop();
-        this.activeOrderBookStreams.delete(subscription.symbol);
-      }
-    }
+      if (activeStream.subscriptionCount <= 0 && !activeStream.pendingStopTimeout) {
+        activeStream.pendingStopTimeout = setTimeout(() => {
+          const currentStream = this.activeOrderBookStreams.get(subscription.symbol);
 
-    if (this.orderBookSubscriptions.size === 0) {
-      this.disconnect();
+          if (!currentStream || currentStream.subscriptionCount > 0) {
+            return;
+          }
+
+          currentStream.stream.stop();
+          this.activeOrderBookStreams.delete(subscription.symbol);
+
+          if (this.orderBookSubscriptions.size === 0) {
+            this.disconnect();
+          }
+        }, STREAM_IDLE_GRACE_MS);
+      }
     }
   }
 

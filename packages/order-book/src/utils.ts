@@ -65,42 +65,43 @@ export function createDisplayRows(args: {
     } = args;
 
     const cumulativeNotionals = new Array<number>(levels.length).fill(0);
+    const cumulativeQuantities = new Array<number>(levels.length).fill(0);
     let runningNotional = 0;
+    let runningQuantity = 0;
+    let maxAmountDepth = 0;
 
     if (operation === "ask") {
         for (let index = levels.length - 1; index >= 0; index -= 1) {
             runningNotional += levels[index].notional;
+            runningQuantity += levels[index].quantity;
             cumulativeNotionals[index] = runningNotional;
+            cumulativeQuantities[index] = runningQuantity;
+
+            if (levels[index].notional > maxAmountDepth) {
+                maxAmountDepth = levels[index].notional;
+            }
         }
     } else {
         for (let index = 0; index < levels.length; index += 1) {
             runningNotional += levels[index].notional;
+            runningQuantity += levels[index].quantity;
             cumulativeNotionals[index] = runningNotional;
+            cumulativeQuantities[index] = runningQuantity;
+
+            if (levels[index].notional > maxAmountDepth) {
+                maxAmountDepth = levels[index].notional;
+            }
         }
     }
 
-    const maxAmountDepth = levels.reduce(
-        (maxDepth, level) => Math.max(maxDepth, level.notional),
-        0,
-    );
-    const maxCumulativeDepth = cumulativeNotionals.reduce(
-        (maxDepth, value) => Math.max(maxDepth, value),
-        0,
-    );
+    const maxCumulativeDepth = runningNotional;
 
     const rows: DisplayRow[] = levels.map((level, index) => {
         const totalValue =
             depthMode === "cumulative" ? cumulativeNotionals[index] : level.notional;
         const depthBase =
             depthMode === "cumulative" ? maxCumulativeDepth : maxAmountDepth;
-        const cumulativeQuantity =
-            operation === "ask"
-                ? levels
-                      .slice(index)
-                      .reduce((sum, currentLevel) => sum + currentLevel.quantity, 0)
-                : levels
-                      .slice(0, index + 1)
-                      .reduce((sum, currentLevel) => sum + currentLevel.quantity, 0);
+        const cumulativeQuantity = cumulativeQuantities[index];
         const averagePrice =
             cumulativeQuantity === 0
                 ? level.price

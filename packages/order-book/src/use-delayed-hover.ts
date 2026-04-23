@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 const HOVER_DELAY_MS = 60;
 
@@ -14,7 +14,7 @@ export function useDelayedHover() {
         };
     }, []);
 
-    function handleHoverStart(index: number) {
+    const handleHoverStart = useCallback((index: number) => {
         if (hoverTimeoutRef.current) {
             clearTimeout(hoverTimeoutRef.current);
         }
@@ -23,16 +23,16 @@ export function useDelayedHover() {
             setHoveredIndex(index);
             hoverTimeoutRef.current = null;
         }, HOVER_DELAY_MS);
-    }
+    }, []);
 
-    function handleHoverEnd() {
+    const handleHoverEnd = useCallback(() => {
         if (hoverTimeoutRef.current) {
             clearTimeout(hoverTimeoutRef.current);
             hoverTimeoutRef.current = null;
         }
 
         setHoveredIndex(null);
-    }
+    }, []);
 
     return {
         hoveredIndex,
