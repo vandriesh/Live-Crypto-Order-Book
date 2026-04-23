@@ -29,7 +29,17 @@ type DataProviderProps = {
 const defaultChannels: MarketDataSnapshot["requestedChannels"] = ["order-book"];
 const publishIntervalMs = 1000;
 
-const MarketDataContext = createContext<MarketDataSnapshot | null>(null);
+type MarketDataMeta = Omit<
+  MarketDataSnapshot,
+  "lastMessageAt" | "orderBookSnapshot"
+>;
+type MarketDataLive = Pick<
+  MarketDataSnapshot,
+  "lastMessageAt" | "orderBookSnapshot"
+>;
+
+const MarketDataMetaContext = createContext<MarketDataMeta | null>(null);
+const MarketDataLiveContext = createContext<MarketDataLive | null>(null);
 
 function createInitialValue(
   market: SupportedMarket,
@@ -57,9 +67,25 @@ export function DataProvider({
   provider = binanceProvider,
 }: DataProviderProps) {
   const requestedChannels = useMemo(() => [...channels], [channels]);
-  const [value, setValue] = useState<MarketDataSnapshot>(() =>
-    createInitialValue(market, marketType, requestedChannels),
-  );
+  const [meta, setMeta] = useState<MarketDataMeta>(() => {
+    const initialValue = createInitialValue(market, marketType, requestedChannels);
+
+    return {
+      activeChannels: initialValue.activeChannels,
+      connectionStatus: initialValue.connectionStatus,
+      market: initialValue.market,
+      marketType: initialValue.marketType,
+      requestedChannels: initialValue.requestedChannels,
+    };
+  });
+  const [live, setLive] = useState<MarketDataLive>(() => {
+    const initialValue = createInitialValue(market, marketType, requestedChannels);
+
+    return {
+      lastMessageAt: initialValue.lastMessageAt,
+      orderBookSnapshot: initialValue.orderBookSnapshot,
+    };
+  });
   const latestSnapshotRef = useRef<MarketDataSnapshot["orderBookSnapshot"] | null>(
     null,
   );
@@ -83,12 +109,28 @@ export function DataProvider({
       lastPublishedAtRef.current = Date.now();
       clearPendingPublish();
 
-      setValue({
-        market,
-        marketType,
-        requestedChannels,
-        activeChannels: requestedChannels,
-        connectionStatus: provider.getStatus(),
+      setMeta((currentMeta) => {
+        const nextMeta: MarketDataMeta = {
+          activeChannels: requestedChannels,
+          connectionStatus: provider.getStatus(),
+          market,
+          marketType,
+          requestedChannels,
+        };
+
+        if (
+          currentMeta.market === nextMeta.market &&
+          currentMeta.marketType === nextMeta.marketType &&
+          currentMeta.connectionStatus === nextMeta.connectionStatus &&
+          currentMeta.requestedChannels === nextMeta.requestedChannels &&
+          currentMeta.activeChannels === nextMeta.activeChannels
+        ) {
+          return currentMeta;
+        }
+
+        return nextMeta;
+      });
+      setLive({
         lastMessageAt: orderBookSnapshot.eventTime,
         orderBookSnapshot,
       });
@@ -98,16 +140,18 @@ export function DataProvider({
     lastPublishedAtRef.current = 0;
     clearPendingPublish();
 
-    setValue((currentValue) => ({
+    setMeta((currentMeta) => ({
       market,
       marketType,
       requestedChannels,
       activeChannels: [],
       connectionStatus:
-        currentValue.market === market ? "connecting" : "switching",
+        currentMeta.market === market ? "connecting" : "switching",
+    }));
+    setLive({
       lastMessageAt: emptySnapshot.eventTime,
       orderBookSnapshot: emptySnapshot,
-    }));
+    });
 
     if (requestedChannels.includes("order-book")) {
       const subscriptionKey = provider.subscribe({
@@ -151,18 +195,43 @@ export function DataProvider({
   }, [market, marketType, provider, requestedChannels]);
 
   return (
-    <MarketDataContext.Provider value={value}>
-      {children}
-    </MarketDataContext.Provider>
+    <MarketDataMetaContext.Provider value={meta}>
+      <MarketDataLiveContext.Provider value={live}>
+        {children}
+      </MarketDataLiveContext.Provider>
+    </MarketDataMetaContext.Provider>
   );
 }
 
-export function useMarketData() {
-  const context = useContext(MarketDataContext);
+export function useMarketDataMeta() {
+  const context = useContext(MarketDataMetaContext);
 
   if (!context) {
-    throw new Error("useMarketData must be used inside DataProvider");
+    throw new Error("useMarketDataMeta must be used inside DataProvider");
   }
 
   return context;
+}
+
+export function useMarketDataLive() {
+  const context = useContext(MarketDataLiveContext);
+
+  if (!context) {
+    throw new Error("useMarketDataLive must be used inside DataProvider");
+  }
+
+  return context;
+}
+
+export function useMarketData() {
+  const meta = useMarketDataMeta();
+  const live = useMarketDataLive();
+
+  return useMemo(
+    () => ({
+      ...meta,
+      ...live,
+    }),
+    [live, meta],
+  );
 }

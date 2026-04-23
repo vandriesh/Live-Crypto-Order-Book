@@ -10,7 +10,10 @@ import {
   Switch,
 } from "@neet/ui-kit";
 
-import { useOrderBookDisplay } from "./order-book-display-provider";
+import {
+  useOrderBookDisplayActions,
+  useOrderBookDisplayState,
+} from "./order-book-display-provider";
 
 function LabeledCheckbox({
   checked,
@@ -34,7 +37,8 @@ function LabeledCheckbox({
 }
 
 export function OrderBookDisplayPopup() {
-  const { actions, state } = useOrderBookDisplay();
+  const actions = useOrderBookDisplayActions();
+  const state = useOrderBookDisplayState();
 
   return (
     <Popover>

@@ -9,7 +9,17 @@ let mockMarketData: MarketDataSnapshot;
 
 vi.mock("@neet/binance-connection-manager", () => ({
   DataProvider: ({ children }: { children: React.ReactNode }) => children,
-  useMarketData: () => mockMarketData,
+  useMarketDataLive: () => ({
+    lastMessageAt: mockMarketData.lastMessageAt,
+    orderBookSnapshot: mockMarketData.orderBookSnapshot,
+  }),
+  useMarketDataMeta: () => ({
+    activeChannels: mockMarketData.activeChannels,
+    connectionStatus: mockMarketData.connectionStatus,
+    market: mockMarketData.market,
+    marketType: mockMarketData.marketType,
+    requestedChannels: mockMarketData.requestedChannels,
+  }),
 }));
 
 vi.mock("./order-book-display-popup", () => ({

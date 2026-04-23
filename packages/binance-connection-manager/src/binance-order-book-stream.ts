@@ -26,6 +26,7 @@ const BINANCE_REST_ENDPOINT = "https://api.binance.com/api/v3/depth";
 const BINANCE_WS_ENDPOINT = "wss://stream.binance.com:9443/ws";
 const SNAPSHOT_LEVEL_LIMIT = 5000;
 const EMITTED_LEVELS_PER_SIDE = 40;
+const EMIT_THROTTLE_MS = 250;
 
 export function toBinanceSymbol(market: SupportedMarket) {
   return market.toLowerCase();
@@ -143,6 +144,9 @@ export class BinanceOrderBookStream {
   private isStopped = false;
   private socket: WebSocket | null = null;
   private updateId = 0;
+  private emitTimeout: ReturnType<typeof setTimeout> | null = null;
+  private lastEmitAt = 0;
+  private pendingEventTime = 0;
 
   constructor(
     private readonly market: SupportedMarket,
@@ -161,6 +165,7 @@ export class BinanceOrderBookStream {
     this.bufferedEvents = [];
     this.initializationPromise = null;
     this.isInitialized = false;
+    this.cancelPendingEmit();
   }
 
   private openSocket() {
@@ -235,19 +240,13 @@ export class BinanceOrderBookStream {
         this.isInitialized = true;
         this.bufferedEvents = [];
 
-        this.onSnapshot(
-          toNormalizedSnapshot({
-            asks: this.asks,
-            bids: this.bids,
-            eventTime: Date.now(),
-            market: this.market,
-            lastUpdateId: this.updateId,
-          }),
-        );
-
         for (const bufferedEvent of relevantBufferedEvents) {
-          this.applyEvent(bufferedEvent);
+          this.applyEventState(bufferedEvent);
         }
+
+        this.scheduleEmit(
+          relevantBufferedEvents[relevantBufferedEvents.length - 1]?.E ?? Date.now(),
+        );
 
         return;
       }
@@ -258,28 +257,77 @@ export class BinanceOrderBookStream {
   }
 
   private applyEvent(event: BinanceDiffDepthPayload) {
-    if (event.u < this.updateId) {
+    if (!this.applyEventState(event)) {
       return;
+    }
+
+    this.scheduleEmit(event.E);
+  }
+
+  private applyEventState(event: BinanceDiffDepthPayload) {
+    if (event.u < this.updateId) {
+      return false;
     }
 
     if (event.U > this.updateId + 1) {
       this.restartFromScratch();
-      return;
+      return false;
     }
 
     applyDepthLevels(event.b, this.bids);
     applyDepthLevels(event.a, this.asks);
     this.updateId = event.u;
+    return true;
+  }
+
+  private scheduleEmit(eventTime: number) {
+    this.pendingEventTime = eventTime;
+    const now = Date.now();
+    const elapsed = now - this.lastEmitAt;
+
+    if (elapsed >= EMIT_THROTTLE_MS) {
+      this.flushEmit();
+      return;
+    }
+
+    if (this.emitTimeout != null) {
+      return;
+    }
+
+    this.emitTimeout = setTimeout(() => this.flushEmit(), EMIT_THROTTLE_MS - elapsed);
+  }
+
+  private flushEmit() {
+    if (this.emitTimeout != null) {
+      clearTimeout(this.emitTimeout);
+      this.emitTimeout = null;
+    }
+
+    if (this.isStopped || !this.isInitialized) {
+      return;
+    }
+
+    this.lastEmitAt = Date.now();
 
     this.onSnapshot(
       toNormalizedSnapshot({
         asks: this.asks,
         bids: this.bids,
-        eventTime: event.E,
+        eventTime: this.pendingEventTime || this.lastEmitAt,
         market: this.market,
         lastUpdateId: this.updateId,
       }),
     );
+  }
+
+  private cancelPendingEmit() {
+    if (this.emitTimeout != null) {
+      clearTimeout(this.emitTimeout);
+      this.emitTimeout = null;
+    }
+
+    this.lastEmitAt = 0;
+    this.pendingEventTime = 0;
   }
 
   private restartFromScratch() {
@@ -290,6 +338,7 @@ export class BinanceOrderBookStream {
     this.initializationPromise = null;
     this.isInitialized = false;
     this.updateId = 0;
+    this.cancelPendingEmit();
     const previousSocket = this.socket;
     this.socket = null;
     previousSocket?.close();

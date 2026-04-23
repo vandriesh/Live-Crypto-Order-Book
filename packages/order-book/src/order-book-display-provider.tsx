@@ -61,19 +61,14 @@ type OrderBookDisplayView = {
   bids: DisplayRow[];
 };
 
-type OrderBookDisplayContextValue = {
-  actions: {
-    setAnimationsEnabled: (value: boolean) => void;
-    setDepthMode: (value: DepthMode) => void;
-    setDisplayAverage: (value: boolean) => void;
-    setRoundingEnabled: (value: boolean) => void;
-    setShowRatio: (value: boolean) => void;
-    setTickSize: (value: TickSizeOption) => void;
-    setVisibleOperation: (value: VisibleOperation) => void;
-  };
-  state: OrderBookDisplayState;
-  tickSizeOptions: readonly TickSizeOption[];
-  view: OrderBookDisplayView;
+type OrderBookDisplayActions = {
+  setAnimationsEnabled: (value: boolean) => void;
+  setDepthMode: (value: DepthMode) => void;
+  setDisplayAverage: (value: boolean) => void;
+  setRoundingEnabled: (value: boolean) => void;
+  setShowRatio: (value: boolean) => void;
+  setTickSize: (value: TickSizeOption) => void;
+  setVisibleOperation: (value: VisibleOperation) => void;
 };
 
 const initialDisplayState: OrderBookDisplayState = {
@@ -86,8 +81,10 @@ const initialDisplayState: OrderBookDisplayState = {
   visibleOperation: "both",
 };
 
-const OrderBookDisplayContext =
-  createContext<OrderBookDisplayContextValue | null>(null);
+const OrderBookDisplayActionsContext =
+  createContext<OrderBookDisplayActions | null>(null);
+const OrderBookDisplayStateContext =
+  createContext<OrderBookDisplayState | null>(null);
 
 function orderBookDisplayReducer(
   state: OrderBookDisplayState,
@@ -115,19 +112,69 @@ function orderBookDisplayReducer(
 
 export function OrderBookDisplayProvider({
   children,
-  market,
-  orderBookSnapshot: snapshot,
 }: {
   children: ReactNode;
-  market: SupportedMarket;
-  orderBookSnapshot: MarketDataSnapshot["orderBookSnapshot"];
 }) {
-  const previousMidPriceByMarketRef = useRef(
-    new Map<string, { direction: "down" | "up"; price: number }>(),
-  );
   const [state, dispatch] = useReducer(
     orderBookDisplayReducer,
     initialDisplayState,
+  );
+
+  const actions = useMemo<OrderBookDisplayActions>(
+    () => ({
+      setAnimationsEnabled: (value) => dispatch({ type: "set_animations_enabled", value }),
+      setDepthMode: (value) => dispatch({ type: "set_depth_mode", value }),
+      setDisplayAverage: (value) => dispatch({ type: "set_display_average", value }),
+      setRoundingEnabled: (value) => dispatch({ type: "set_rounding_enabled", value }),
+      setShowRatio: (value) => dispatch({ type: "set_show_ratio", value }),
+      setTickSize: (value) => dispatch({ type: "set_tick_size", value }),
+      setVisibleOperation: (value) =>
+        dispatch({ type: "set_visible_operation", value }),
+    }),
+    [],
+  );
+
+  return (
+    <OrderBookDisplayActionsContext.Provider value={actions}>
+      <OrderBookDisplayStateContext.Provider value={state}>
+        {children}
+      </OrderBookDisplayStateContext.Provider>
+    </OrderBookDisplayActionsContext.Provider>
+  );
+}
+
+export function useOrderBookDisplayActions() {
+  const context = useContext(OrderBookDisplayActionsContext);
+
+  if (!context) {
+    throw new Error(
+      "useOrderBookDisplayActions must be used inside OrderBookDisplayProvider",
+    );
+  }
+
+  return context;
+}
+
+export function useOrderBookDisplayState() {
+  const context = useContext(OrderBookDisplayStateContext);
+
+  if (!context) {
+    throw new Error(
+      "useOrderBookDisplayState must be used inside OrderBookDisplayProvider",
+    );
+  }
+
+  return context;
+}
+
+export function useOrderBookDisplayViewData(args: {
+  market: SupportedMarket;
+  orderBookSnapshot: MarketDataSnapshot["orderBookSnapshot"];
+}) {
+  const { market, orderBookSnapshot: snapshot } = args;
+  const state = useOrderBookDisplayState();
+  const previousMidPriceByMarketRef = useRef(
+    new Map<string, { direction: "down" | "up"; price: number }>(),
   );
 
   const previousMidPriceState = previousMidPriceByMarketRef.current.get(market);
@@ -147,7 +194,7 @@ export function OrderBookDisplayProvider({
     });
   }, [market, persistedMidPriceDirection, snapshot.midPrice]);
 
-  const value = useMemo<OrderBookDisplayContextValue>(() => {
+  return useMemo<OrderBookDisplayView>(() => {
     const marketLabel = formatMarketLabel(market);
     const [baseAsset, quoteAsset] = marketLabel.split("/");
     const visibleLevels = getVisibleOrderBookLevels(state.visibleOperation);
@@ -162,76 +209,48 @@ export function OrderBookDisplayProvider({
     const combinedTotal = buyTotal + sellTotal || 1;
 
     return {
-      actions: {
-        setAnimationsEnabled: (value) => dispatch({ type: "set_animations_enabled", value }),
-        setDepthMode: (value) => dispatch({ type: "set_depth_mode", value }),
-        setDisplayAverage: (value) => dispatch({ type: "set_display_average", value }),
-        setRoundingEnabled: (value) => dispatch({ type: "set_rounding_enabled", value }),
-        setShowRatio: (value) => dispatch({ type: "set_show_ratio", value }),
-        setTickSize: (value) => dispatch({ type: "set_tick_size", value }),
-        setVisibleOperation: (value) =>
-          dispatch({ type: "set_visible_operation", value }),
-      },
-      state,
-      tickSizeOptions,
-      view: {
-        asks: createDisplayRows({
-          depthMode: state.depthMode,
-          levels: bucketOrderBookLevels({
-            levels: visibleAsks,
-            operation: "ask",
-            tickSize: state.tickSize,
-          }).reverse(),
+      asks: createDisplayRows({
+        depthMode: state.depthMode,
+        levels: bucketOrderBookLevels({
+          levels: visibleAsks,
           operation: "ask",
-          roundingEnabled: state.roundingEnabled,
-          targetCount: visibleLevels,
           tickSize: state.tickSize,
-        }),
-        baseAsset,
-        bids: createDisplayRows({
-          depthMode: state.depthMode,
-          levels: bucketOrderBookLevels({
-            levels: visibleBids,
-            operation: "bid",
-            tickSize: state.tickSize,
-          }),
+        }).reverse(),
+        operation: "ask",
+        roundingEnabled: state.roundingEnabled,
+        targetCount: visibleLevels,
+        tickSize: state.tickSize,
+      }),
+      baseAsset,
+      bids: createDisplayRows({
+        depthMode: state.depthMode,
+        levels: bucketOrderBookLevels({
+          levels: visibleBids,
           operation: "bid",
-          roundingEnabled: state.roundingEnabled,
-          targetCount: visibleLevels,
           tickSize: state.tickSize,
         }),
-        buyRatio: (buyTotal / combinedTotal) * 100,
-        marketLabel,
-        midPriceRow: {
-          direction: persistedMidPriceDirection,
-          price: formatPriceForDisplay(
-            snapshot.midPrice,
-            state.tickSize,
-          ),
-          referencePrice: formatPrice(snapshot.midPrice),
-        },
-        quoteAsset,
-        sellRatio: 100 - (buyTotal / combinedTotal) * 100,
-        showRatio: state.showRatio,
+        operation: "bid",
+        roundingEnabled: state.roundingEnabled,
+        targetCount: visibleLevels,
+        tickSize: state.tickSize,
+      }),
+      buyRatio: (buyTotal / combinedTotal) * 100,
+      marketLabel,
+      midPriceRow: {
+        direction: persistedMidPriceDirection,
+        price: formatPriceForDisplay(
+          snapshot.midPrice,
+          state.tickSize,
+        ),
+        referencePrice: formatPrice(snapshot.midPrice),
       },
+      quoteAsset,
+      sellRatio: 100 - (buyTotal / combinedTotal) * 100,
+      showRatio: state.showRatio,
     };
   }, [market, persistedMidPriceDirection, snapshot, state]);
-
-  return (
-    <OrderBookDisplayContext.Provider value={value}>
-      {children}
-    </OrderBookDisplayContext.Provider>
-  );
 }
 
-export function useOrderBookDisplay() {
-  const context = useContext(OrderBookDisplayContext);
-
-  if (!context) {
-    throw new Error(
-      "useOrderBookDisplay must be used inside OrderBookDisplayProvider",
-    );
-  }
-
-  return context;
+export function useOrderBookTickSizeOptions() {
+  return tickSizeOptions;
 }

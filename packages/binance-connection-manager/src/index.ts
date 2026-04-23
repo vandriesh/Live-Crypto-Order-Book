@@ -2,7 +2,12 @@ export {
   BinanceProvider,
   binanceProvider,
 } from "./binance-provider";
-export { DataProvider, useMarketData } from "./data-provider";
+export {
+  DataProvider,
+  useMarketData,
+  useMarketDataLive,
+  useMarketDataMeta,
+} from "./data-provider";
 export type {
   BinanceDepthLevelTuple,
   BinanceDiffDepthPayload,
