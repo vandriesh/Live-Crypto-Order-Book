@@ -3,7 +3,9 @@
     "allow": [
       "Bash(npm run *)",
       "Bash(node -e \"const r = require\\('@react-router/dev/routes'\\); console.log\\(Object.keys\\(r\\)\\)\")",
-      "Bash(python3 -)"
+      "Bash(python3 -)",
+      "Bash(npx vitest *)",
+      "Bash(npm install *)"
     ]
   }
 }

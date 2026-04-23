@@ -2,6 +2,9 @@ import { cva } from "class-variance-authority";
 
 import { cn } from "@neet/ui-kit";
 
+import { OrderBookVisualLayer } from "./order-book-visual-layer";
+
+
 const orderBookLevelRowVariants = cva(
   "relative z-10 grid h-8 grid-cols-[1fr_1fr_1fr] items-center border-b border-t border-transparent px-2 font-mono text-sm transition-colors",
   {
@@ -77,32 +80,6 @@ const orderBookLevelValueVariants = cva(
   },
 );
 
-const orderBookLevelDepthVariants = cva(
-  "absolute top-1/2 right-2 h-6 -translate-y-1/2 rounded-[10px]",
-  {
-    variants: {
-      hoverState: {
-        active: "",
-        idle: "",
-      },
-      tone: {
-        ask: "bg-book-ask-soft",
-        bid: "bg-book-bid-soft",
-      },
-    },
-    compoundVariants: [
-      {
-        className: "opacity-100",
-        hoverState: "active",
-      },
-      {
-        className: "opacity-90",
-        hoverState: "idle",
-      },
-    ],
-  },
-);
-
 type OrderBookLevelRowProps = {
   amount: string;
   animated?: boolean;
@@ -115,19 +92,6 @@ type OrderBookLevelRowProps = {
   price: string;
   total: string;
 };
-
-function getDepthWidthPercent(depthRatio: number) {
-  if (depthRatio <= 0) return "0%";
-
-  const maxPercent = 58;
-  const minPercent = 8;
-  const widthPercent = Math.min(
-    maxPercent,
-    Math.max(minPercent, depthRatio * maxPercent),
-  );
-
-  return `${widthPercent}%`;
-}
 
 export function OrderBookLevelRow({
   amount,
@@ -147,16 +111,11 @@ export function OrderBookLevelRow({
       onMouseEnter={onMouseEnter}
       onMouseLeave={onMouseLeave}
     >
-      <div
-        className={cn(
-          "pointer-events-none absolute inset-0 rounded-[8px] transition-opacity duration-700",
-          tone === "ask" ? "bg-red-500/30" : "bg-emerald-500/30",
-          animated ? "opacity-100" : "opacity-0",
-        )}
-      />
-      <div
-        className={orderBookLevelDepthVariants({ hoverState, tone })}
-        style={{ width: getDepthWidthPercent(depthRatio) }}
+      <OrderBookVisualLayer
+        animated={animated}
+        depthRatio={depthRatio}
+        hoverState={hoverState}
+        tone={tone}
       />
       <span className={orderBookLevelPriceVariants({ hoverState, tone })}>
         {price}

@@ -79,8 +79,8 @@ export function OrderBookContainerContent() {
             </div>
 
             <div className="flex-1 p-4">
-                <section className="flex h-full flex-col overflow-hidden rounded-[20px] border border-shell-border bg-shell-surface-alt">
-                    <div className="grid grid-cols-[1fr_1fr_1fr] px-4 py-3 text-xs text-shell-text-faint">
+                <section className="flex h-full flex-col overflow-hidden rounded-[20px] border border-shell-border bg-shell-surface-alt" data-testid="order-book-section">
+                    <div className="grid grid-cols-[1fr_1fr_1fr] px-4 py-3 text-xs text-shell-text-faint" >
                         <span>Price ({quoteAsset})</span>
                         <span className="text-right">Amount ({baseAsset})</span>
                         <span className="text-right">Total</span>
