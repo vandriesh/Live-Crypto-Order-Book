@@ -41,7 +41,7 @@ export const OrderBookSideLevels = memo(function OrderBookSideLevels({
                 ) : (
                     <OrderBookSideRow
                         animated={animatedPrices.has(row.price)}
-                        key={`${variant}-${row.price}-${row.total}`}
+                        key={`${variant}-${row.price}`}
                         baseAsset={baseAsset}
                         displayAverage={displayAverage}
                         hoveredIndex={hoveredIndex}
